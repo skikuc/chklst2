@@ -143,14 +143,14 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             position: relative;
             background-color: var(--card-bg); /* デフォルトの背景色は維持 */
-            border-left: 5px solid var(--primary-color); /* 左ボーダーは統一色に */
+            /* border-left は各 .color-X クラスで設定 */
         }
-        /* 自動配色用クラスを淡い色合いで再設定 */
-        .color-0 { background-color: hsl(0, 30%, 95%); } /* Reddish, faint */
-        .color-1 { background-color: hsl(137.5, 30%, 95%); } /* Greenish, faint */
-        .color-2 { background-color: hsl(275, 30%, 95%); } /* Purplish, faint */
-        .color-3 { background-color: hsl(412.5, 30%, 95%); } /* Yellowish-orange, faint */
-        .color-4 { background-color: hsl(550, 30%, 95%); } /* Bluish-green, faint */
+        /* 自動配色用クラスを淡い色合いで再設定し、対応する色のボーダーを追加 */
+        .color-0 { background-color: hsl(0, 30%, 95%); border-left: 5px solid hsl(0, 70%, 75%); } /* Reddish, faint bg, strong border */
+        .color-1 { background-color: hsl(137.5, 30%, 95%); border-left: 5px solid hsl(137.5, 70%, 75%); } /* Greenish, faint bg, strong border */
+        .color-2 { background-color: hsl(275, 30%, 95%); border-left: 5px solid hsl(275, 70%, 75%); } /* Purplish, faint bg, strong border */
+        .color-3 { background-color: hsl(412.5, 30%, 95%); border-left: 5px solid hsl(412.5, 70%, 75%); } /* Yellowish-orange, faint bg, strong border */
+        .color-4 { background-color: hsl(550, 30%, 95%); border-left: 5px solid hsl(550, 70%, 75%); } /* Bluish-green, faint bg, strong border */
 
         .subgroup-header {
             font-weight: bold;
@@ -1175,7 +1175,31 @@
                 title: "その他",
                 icon: "fa-ellipsis-h", // FontAwesome icon
                 editable: true, // Editable tab
-                subgroups: []
+                subgroups: [
+                    {
+                        id: "sg_other_sample1",
+                        title: "📝 サンプルサブグループ 1",
+                        items: [
+                            { id: "ot_item1", title: "サンプル項目 A", icon: null, isChecked: false, action: null },
+                            { id: "ot_item2", title: "サンプル項目 B", icon: "✨", isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_other_sample2",
+                        title: "💡 サンプルサブグループ 2",
+                        items: [
+                            { id: "ot_item3", title: "サンプル項目 C", icon: null, isChecked: false, action: null }
+                        ],
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_other_sample3",
+                        title: "🚀 サンプルサブグループ 3",
+                        items: [], // Can be empty
+                        colorIndex: 2
+                    }
+                ]
             }
         ]
     };
