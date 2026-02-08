@@ -228,7 +228,7 @@
         }
         /* Icon-only button specific styles */
         .action-btn.icon-only-btn {
-            background-color: white; /* 背景を白に */
+            background-color: white !important; /* 背景を白に強制 */
             border: none;
             padding: 0;
             box-shadow: none; /* Remove shadow if any */
@@ -2000,8 +2000,9 @@
 
     mainContent.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
-        // Prevent scrolling if drag-and-drop is active (editing mode)
-        if (isEditing) {
+        // Prevent scrolling if drag-and-drop is active (editing mode),
+        // but allow clicks on 'add-item-area' buttons
+        if (isEditing && !e.target.closest('.add-item-area')) {
             e.preventDefault(); 
         }
     });
