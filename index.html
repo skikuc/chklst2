@@ -142,15 +142,15 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             position: relative;
+            background-color: var(--card-bg); /* デフォルトの背景色は維持 */
+            border-left: 5px solid var(--primary-color); /* 左ボーダーは統一色に */
         }
-        /* 自動配色用クラス */
-        /* HSLで色相(Hue)のみを回転させ、彩度(S)と輝度(L)を固定してパステル調を維持 */
-        /* hue = (index * 137.5) % 360;  黄金角(137.5度)でずらすと色が重なりにくい */
-        .color-0 { background-color: hsl(0, 70%, 85%); border-left: 5px solid hsl(0, 70%, 75%); } /* Reddish */
-        .color-1 { background-color: hsl(137.5, 70%, 85%); border-left: 5px solid hsl(137.5, 70%, 75%); } /* Greenish */
-        .color-2 { background-color: hsl(275, 70%, 85%); border-left: 5px solid hsl(275, 70%, 75%); } /* Purplish */
-        .color-3 { background-color: hsl(412.5, 70%, 85%); border-left: 5px solid hsl(412.5, 70%, 75%); } /* Yellowish-orange */
-        .color-4 { background-color: hsl(550, 70%, 85%); border-left: 5px solid hsl(550, 70%, 75%); } /* Bluish-green */
+        /* 自動配色用クラスを淡い色合いで再設定 */
+        .color-0 { background-color: hsl(0, 30%, 95%); } /* Reddish, faint */
+        .color-1 { background-color: hsl(137.5, 30%, 95%); } /* Greenish, faint */
+        .color-2 { background-color: hsl(275, 30%, 95%); } /* Purplish, faint */
+        .color-3 { background-color: hsl(412.5, 30%, 95%); } /* Yellowish-orange, faint */
+        .color-4 { background-color: hsl(550, 30%, 95%); } /* Bluish-green, faint */
 
         .subgroup-header {
             font-weight: bold;
@@ -225,6 +225,23 @@
             height: 20px; /* アクションボタン内のアイコン画像サイズ */
             width: auto;
             vertical-align: middle;
+        }
+        /* Icon-only button specific styles */
+        .action-btn.icon-only-btn {
+            background-color: white; /* 背景を白に */
+            border: none;
+            padding: 0;
+            box-shadow: none; /* Remove shadow if any */
+            line-height: 1; /* Adjust line-height to fit image */
+            min-width: unset; /* Remove min-width if present from action-button */
+            margin-left: 8px; /* Ensure consistent spacing with other buttons */
+            height: 36px; /* Explicitly set height for the button itself to match image */
+            width: 36px; /* Explicitly set width for the button itself to match image */
+            border-radius: 6px; /* Add some border-radius for aesthetics */
+        }
+        .action-btn.icon-only-btn img {
+            height: 36px; /* Make image larger */
+            width: 36px; /* Make image larger */
         }
         /* Shortcut specific color */
         .action-btn.shortcut { background: #FF9500; } 
@@ -1374,26 +1391,38 @@
                     if (item.action.type === 'mixed') {
                         actionButtonHTML += `<div class="action-btn-mixed">`;
                         item.action.val.forEach(mixedAction => {
-                            actionButtonHTML += `<button class="action-btn ${mixedAction.type}" onclick="handleAction({ type: '${mixedAction.type}', val: \`${mixedAction.val}\`, label: \`${mixedAction.label}\` })">`;
+                            let mixedBtnClass = `action-btn ${mixedAction.type}`;
+                            let mixedBtnContent = '';
                             if (mixedAction.icon) {
-                                actionButtonHTML += `<img src="${mixedAction.icon}" alt="${mixedAction.label}">`;
+                                mixedBtnContent += `<img src="${mixedAction.icon}" alt="${mixedAction.label}">`;
+                                mixedBtnClass += ' icon-only-btn'; // Add class if it's an icon button
+                            } else {
+                                mixedBtnContent += mixedAction.label;
                             }
-                            actionButtonHTML += `${mixedAction.label}</button>`;
+                            actionButtonHTML += `<button class="${mixedBtnClass}" onclick="handleAction({ type: '${mixedAction.type}', val: \`${mixedAction.val}\`, label: \`${mixedAction.label}\` })">${mixedBtnContent}</button>`;
                         });
                         actionButtonHTML += `</div>`;
-                    } else if (item.action.type === 'image') { // Special handling for image-only buttons
-                        actionButtonHTML += `<button class="action-btn image" onclick="handleAction({ type: '${item.action.type}', val: \`${item.action.val}\`, label: \`${item.action.label}\` })">`;
-                        if (item.action.icon) {
-                            actionButtonHTML += `<img src="${item.action.icon}" alt="${item.action.label}">`;
+                    } else if (item.action.type === 'image') { // Special handling for image-only buttons (assuming icon is the image source)
+                        let imageBtnClass = `action-btn ${item.action.type}`;
+                        let imageBtnContent = '';
+                        if (item.action.icon) { // Check if icon is explicitly provided for this type
+                            imageBtnContent += `<img src="${item.action.icon}" alt="${item.action.label}">`;
+                            imageBtnClass += ' icon-only-btn'; // Always icon-only for type 'image' or if icon is present
+                        } else { // Fallback if no icon is specified for type 'image' (unlikely but safe)
+                            imageBtnContent += item.action.label;
                         }
-                        actionButtonHTML += `</button>`;
+                        actionButtonHTML += `<button class="${imageBtnClass}" onclick="handleAction({ type: '${item.action.type}', val: \`${item.action.val}\`, label: \`${item.action.label}\` })">${imageBtnContent}</button>`;
                     }
-                    else {
-                        actionButtonHTML += `<button class="action-btn ${item.action.type}" onclick="handleAction({ type: '${item.action.type}', val: \`${item.action.val}\`, label: \`${item.action.label}\` })">`;
+                    else { // For single actions (shortcut, url, modal, function)
+                        let singleBtnClass = `action-btn ${item.action.type}`;
+                        let singleBtnContent = '';
                         if (item.action.icon) {
-                            actionButtonHTML += `<img src="${item.action.icon}" alt="${item.action.label}">`;
+                            singleBtnContent += `<img src="${item.action.icon}" alt="${item.action.label}">`;
+                            singleBtnClass += ' icon-only-btn'; // Add class if it's an icon button
+                        } else {
+                            singleBtnContent += item.action.label;
                         }
-                        actionButtonHTML += `${item.action.label}</button>`;
+                        actionButtonHTML += `<button class="${singleBtnClass}" onclick="handleAction({ type: '${item.action.type}', val: \`${item.action.val}\`, label: \`${item.action.label}\` })">${singleBtnContent}</button>`;
                     }
                 }
                 // Handle image icons for item title
