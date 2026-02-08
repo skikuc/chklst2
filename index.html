@@ -6,11 +6,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Routine Check</title>
-    <!-- アイコン用 -->
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- ドラッグ＆ドロップ用ライブラリ -->
+    <!-- SortableJS for drag-and-drop -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- (Optional) Swiper.js for swipe navigation if implemented -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" /> -->
+    <!-- <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script> -->
     <style>
+        /* CSSは現状のchecklist_daily2.htmlのものをベースに、必要に応じて拡張・調整 */
+        /* ヘルスツールチップ関連のCSS (.health-tooltip-sectionなど) も追加・統合する */
+        /* 固定タブと編集モードの視覚的な区別を明確にするスタイルを追加 */
+        /* .company-day-badge の画像表示対応 */
         :root {
             --primary-color: #007AFF;
             --bg-color: #F2F2F7;
@@ -59,15 +66,23 @@
         .date-display { font-size: 1.2rem; font-weight: bold; }
         .company-day-badge {
             margin-left: 10px;
-            background: #E60012; /* BN Red style */
-            color: white;
+            /* background: #E60012; BN Red style */
+            /* color: white; */
             font-size: 0.7rem;
             padding: 4px 8px;
-            border-radius: 4px;
+            /* border-radius: 4px; */
             font-weight: bold;
             display: none; /* JSで制御 */
+            align-items: center; /* 画像とテキストの垂直方向の位置合わせ */
+            justify-content: center;
         }
-        .company-day-badge.active { display: inline-block; }
+        .company-day-badge.active { display: flex; } /* blockからflexに変更 */
+        .company-day-badge img {
+            height: 24px; /* BNロゴの表示サイズ調整 */
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
 
         .settings-btn {
             position: absolute;
@@ -75,7 +90,19 @@
             font-size: 1.2rem;
             color: var(--primary-color);
             cursor: pointer;
+            display: flex; /* 追加 */
+            align-items: center; /* 追加 */
+            gap: 5px; /* 追加 */
         }
+
+        #groupHeaderButtonArea { /* 追加 */
+            position: absolute;
+            left: 15px;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
 
         /* Marquee */
         .marquee-container {
@@ -117,11 +144,13 @@
             position: relative;
         }
         /* 自動配色用クラス */
-        .color-0 { background-color: #E3F2FD; border-left: 5px solid #2196F3; }
-        .color-1 { background-color: #F3E5F5; border-left: 5px solid #9C27B0; }
-        .color-2 { background-color: #E8F5E9; border-left: 5px solid #4CAF50; }
-        .color-3 { background-color: #FFF3E0; border-left: 5px solid #FF9800; }
-        .color-4 { background-color: #FFEBEE; border-left: 5px solid #F44336; }
+        /* HSLで色相(Hue)のみを回転させ、彩度(S)と輝度(L)を固定してパステル調を維持 */
+        /* hue = (index * 137.5) % 360;  黄金角(137.5度)でずらすと色が重なりにくい */
+        .color-0 { background-color: hsl(0, 70%, 85%); border-left: 5px solid hsl(0, 70%, 75%); } /* Reddish */
+        .color-1 { background-color: hsl(137.5, 70%, 85%); border-left: 5px solid hsl(137.5, 70%, 75%); } /* Greenish */
+        .color-2 { background-color: hsl(275, 70%, 85%); border-left: 5px solid hsl(275, 70%, 75%); } /* Purplish */
+        .color-3 { background-color: hsl(412.5, 70%, 85%); border-left: 5px solid hsl(412.5, 70%, 75%); } /* Yellowish-orange */
+        .color-4 { background-color: hsl(550, 70%, 85%); border-left: 5px solid hsl(550, 70%, 75%); } /* Bluish-green */
 
         .subgroup-header {
             font-weight: bold;
@@ -187,11 +216,25 @@
             margin-left: 8px;
             text-decoration: none;
             display: inline-block;
+            display: flex; /* 追加 */
+            align-items: center; /* 追加 */
+            justify-content: center; /* 追加 */
+            gap: 5px; /* 追加 */
+        }
+        .action-btn img {
+            height: 20px; /* アクションボタン内のアイコン画像サイズ */
+            width: auto;
+            vertical-align: middle;
         }
         /* Shortcut specific color */
         .action-btn.shortcut { background: #FF9500; } 
         /* URL specific color */
         .action-btn.url { background: #5856D6; }
+        /* Mixed action buttons container */
+        .action-btn-mixed {
+            display: flex;
+            gap: 5px; /* ボタン間のスペース */
+        }
 
         /* --- Footer Tabs --- */
         nav {
@@ -218,11 +261,32 @@
         }
         .tab i { font-size: 1.4rem; margin-bottom: 4px; }
         .tab.active { color: var(--primary-color); }
+        /* 固定タブの編集不可時のスタイル */
+        .tab[data-editable="false"].editing { /* 編集モード時でも編集不可であることを示す */
+            opacity: 0.6;
+            cursor: default;
+        }
+
 
         /* --- Editing Mode UI --- */
         .edit-controls { display: none; margin-left: auto; }
         body.editing .edit-controls { display: flex; gap: 8px; }
-        body.editing .checkbox, body.editing .action-btn { pointer-events: none; opacity: 0.3; }
+        body.editing .checkbox, body.editing .action-btn { pointer-events: none; opacity: 0.3; } /* 編集モード時はクリック無効化 */
+
+        /* 固定グループ内の編集コントロールを非表示にする */
+        .group-content[data-editable="false"] .edit-controls { 
+            display: none !important;
+        }
+        /* 固定グループ内のドラッグハンドルを非表示にする */
+        .group-content[data-editable="false"] .drag-handle {
+            display: none !important;
+        }
+        /* 固定グループ内の追加ボタンを非表示にする */
+        .group-content[data-editable="false"] .add-item-area {
+            display: none !important;
+        }
+
+
         .delete-btn { color: var(--danger); font-size: 1.2rem; cursor: pointer; padding: 5px;}
         .drag-handle { cursor: grab; color: #999; margin-right: 10px; display: none; }
         body.editing .drag-handle { display: block; }
@@ -242,6 +306,67 @@
         /* Modal (Simple Prompt Replacement for prototype) */
         /* ...Using native prompt for MVP... */
 
+        /* Health Tooltip Styles (checklist_daily/index.htmlから統合) */
+        .health-tooltip {
+            position: fixed; /* Changed to fixed for better positioning with body overflow:hidden */
+            background-color: rgba(40, 40, 40, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            z-index: 1001;
+            width: 80%;
+            max-width: 300px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none; /* Initially hidden */
+            font-size: 14px;
+            line-height: 1.6;
+            left: 0; /* JSで上書きされる */
+            top: 0; /* JSで上書きされる */
+        }
+        .health-tooltip-section {
+            margin-bottom: 10px;
+        }
+        .health-tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        .health-tooltip-section strong {
+            color: #FFD700; /* Gold color for headers */
+            display: block;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        .health-tooltip-section p {
+            margin: 0;
+        }
+        .health-item {
+            cursor: pointer;
+        }
+        .health-priority-header {
+            font-size: 14px;
+            font-weight: bold;
+            color: #f39c12; /* Orange color */
+            margin: 15px 0 5px 5px;
+        }
+        .category-header { /* checklist_daily/index.htmlから統合 */
+            font-size: 13px; font-weight: bold; color: #555; margin: 15px 0 8px 5px; border-bottom: 2px solid #a5d6a7; display: inline-block; padding-bottom: 2px;
+        }
+
+        /* モーダル共通 (checklist_daily/index.htmlから統合) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 92%; max-width: 400px; padding: 20px; border-radius: 24px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #555; }
+        .form-group select, .form-group input, .form-group textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; }
+        .time-row { display: flex; gap: 10px; }
+        .time-row .form-group { flex: 1; }
+        .modal-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn-cancel { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #eee; font-weight: bold; font-size: 15px; }
+        .btn-submit { width: 100%; padding: 18px; border-radius: 12px; border: none; background: #E91E63; color: white; font-weight: bold; font-size: 17px; cursor: pointer; }
+        /* リセットボタン等の大型ボタン */
+        .reset-button { width: 100%; padding: 20px; background: #34c759; color: white; border: none; border-radius: 12px; font-size: 20px; margin-top: 10px; font-weight: bold; cursor: pointer; }
+        .qr-button { background: #5856D6; margin-bottom: 20px; margin-top: 0; }
     </style>
 </head>
 <body>
@@ -249,76 +374,790 @@
 <div id="app">
     <header>
         <div class="header-top">
-            <div id="dateDisplay" class="date-display">2月3日(火)</div>
-            <div id="companyBadge" class="company-day-badge">出社日 BN</div>
+            <div id="dateDisplay" class="date-display"></div>
+            <!-- BNロゴまたはアイコン画像を表示するimgタグに置き換え -->
+            <div id="companyBadge" class="company-day-badge"></div> 
             <div class="settings-btn" onclick="toggleEditMode()">
                 <i class="fas fa-cog"></i> <span id="editStatus" style="font-size:0.8rem"></span>
             </div>
+            <!-- グループ固有のヘッダーボタン表示エリア (必要に応じて) -->
+            <div id="groupHeaderButtonArea"></div> 
         </div>
         <div class="marquee-container">
-            <div id="marqueeText" class="marquee-text">
-                人生の最後に残るのは思い出であり、思い出は後からも配当を生む... 今日の積み重ねが未来を作る
-            </div>
+            <div id="marqueeText" class="marquee-text"></div>
         </div>
     </header>
 
     <main id="mainContent">
-        <!-- Content injected by JS -->
+        <!-- JavaScriptによってグループのコンテンツがここに動的に挿入される -->
     </main>
 
     <nav id="tabBar">
-        <!-- Tabs injected by JS -->
+        <!-- JavaScriptによってタブがここに動的に挿入される -->
     </nav>
 </div>
 
+<!-- ヘルスツールチップ要素 -->
+<div id="health-tooltip" class="health-tooltip"></div>
+
+<!-- モーダルダイアログのプレースホルダー -->
+<div id="modalContainer">
+    <!-- AIおでかけプランモーダル (checklist_daily/index.htmlから統合) -->
+    <div class="modal-overlay" id="aiModal">
+        <div class="modal-content">
+            <h2 style="text-align:center; font-size:18px; color:#8E44AD; margin-top:0;">✨ AIおでかけプラン</h2>
+            <div class="time-row">
+                <div class="form-group"><label>開始時間</label><input type="time" id="startTime" value="09:00"></div>
+                <div class="form-group"><label>終了時間</label><input type="time" id="endTime" value="17:00"></div>
+            </div>
+            <div class="form-group"><label>場所</label>
+                <select id="placeSelect">
+                    <option value="千葉市美浜区、花見区周辺（幕張周辺）">幕張周辺</option>
+                    <option value="千葉県内">千葉県内</option>
+                    <option value="東京(山手線より東側)">東京(山手線より東側)</option>
+                    <option value="埼玉県">埼玉県</option>
+                    <option value="神奈川県">神奈川県</option>
+                    <option value="茨城県">茨城県</option>
+                    <option value="関東甲信、東北（遠方）">関東甲信・東北</option>
+                </select>
+            </div>
+            <div class="form-group"><label>移動手段</label>
+                <select id="transportSelect">
+                    <option value="自動車(カーシェア)">自動車(カーシェア)</option>
+                    <option value="電車">電車</option>
+                    <option value="自転車">自転車</option>
+                    <option value="バス">バス</option>
+                </select>
+            </div>
+            <div class="time-row">
+                <div class="form-group"><label>施設数</label>
+                    <select id="facilityCount">
+                        <option value="1箇所">1箇所</option>
+                        <option value="2箇所">2箇所</option>
+                        <option value="3箇所">3箇所</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>プラン数</label>
+                    <select id="planCount">
+                        <option value="1">1個</option><option value="3">3個</option><option value="5">5個</option>
+                        <option value="8">8個</option><option value="10">10個</option><option value="15" selected>15個</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>テーマ</label>
+                <select id="envSelect">
+                    <option value="屋内施設">屋内</option><option value="屋外（公園等）">屋外</option>
+                    <option value="美術館">美術館</option><option value="博物館">博物館</option>
+                    <option value="動物園">動物園</option><option value="水族館">水族館</option>
+                    <option value="プール">プール</option>
+                </select>
+            </div>
+            <div class="form-group"><label>備考</label><textarea id="freeText" rows="2" placeholder="こだわりを入力"></textarea></div>
+            <div class="modal-buttons">
+                <button class="btn-submit" style="background:#8E44AD;" onclick="submitAIPlan()">実行(Perplexity)</button>
+                <button class="btn-cancel" onclick="closeModal('aiModal')">戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI旅行計画モーダル (checklist_daily/index.htmlから統合) -->
+    <div class="modal-overlay" id="travelModal">
+        <div class="modal-content">
+            <h2 style="text-align:center; font-size:18px; color:#E91E63; margin-top:0;">✈️ AI旅行計画</h2>
+            <div class="form-group"><label>連休候補（2026-2027）</label>
+                <select id="trHoliday">
+                    <option value="2月21日(土)〜2月23日(月・祝)：3連休(天皇誕生日)">2/21-2/23 (3連休)</option>
+                    <option value="3月20日(金・祝)〜3月22日(日)：3連休(春分の日)">3/20-3/22 (3連休)</option>
+                    <option value="4月29日(水・祝)〜5月6日(水・祝)：8連休(GW)">4/29-5/6 (8連休・GW)</option>
+                    <option value="7月18日(土)〜7月20日(月・祝)：3連休(海の日)">7/18-7/20 (3連休)</option>
+                    <option value="8月8日(土)〜8月16日(日)：9連休(お盆休み)">8/8-8/16 (9連休・お盆)</option>
+                    <option value="9月19日(土)〜9月23日(水・祝)：5連休(シルバーウィーク)">9/19-9/23 (5連休・SW)</option>
+                    <option value="10月10日(土)〜10月12日(月・祝)：3連休(スポーツの日)">10/10-10/12 (3連休)</option>
+                    <option value="10月31日(土)〜11月3日(火・祝)：4連休(文化の日)">10/31-11/3 (4連休)</option>
+                    <option value="11月21日(土)〜11月23日(月・祝)：3連休(勤労感謝の日)">11/21-11/23 (3連休)</option>
+                    <option value="12月26日(土)〜2027年1月4日(月)：10連休(年末年始)">12/26-1/4 (10連休)</option>
+                    <option value="2027年1月9日(土)〜1月11日(月・祝)：3連休(成人の日)">2027 1/9-1/11 (3連休)</option>
+                </select>
+            </div>
+            <div class="time-row">
+                <div class="form-group"><label>目的地エリア</label>
+                    <select id="trPlace">
+                        <option value="北海道">北海道</option><option value="東北">東北</option><option value="関東甲信越" selected>関東甲信越</option>
+                        <option value="東海・北陸">東海・北陸</option><option value="近畿">近畿</option><option value="中国・四国">中国・四国</option>
+                        <option value="九州・沖縄">九州・沖縄</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>宿泊数</label>
+                    <select id="trStay">
+                        <option value="一泊二日">一泊</option><option value="二泊三日" selected>二泊</option>
+                        <option value="三泊四日">三泊</option><option value="四泊五日">四泊</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>主な移動手段</label>
+                <select id="trTransport">
+                    <option value="飛行機">飛行機</option><option value="新幹線/特急">新幹線/特急</option>
+                    <option value="自家用車/レンタカー">自動車</option><option value="フェリー">フェリー</option>
+                </select>
+            </div>
+            <div class="time-row">
+                <div class="form-group"><label>1日の施設数</label>
+                    <select id="trFacility">
+                        <option value="1箇所">1箇所</option><option value="2箇所" selected>2箇所</option><option value="3箇所">3箇所</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>プラン数</label>
+                    <select id="trPlans">
+                        <option value="1">1個</option><option value="3" selected>3個</option><option value="5">5個</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>旅行テーマ</label>
+                <select id="trEnv">
+                    <option value="温泉・リラックス">温泉</option><option value="テーマパーク">テーマパーク</option>
+                    <option value="自然・絶景">自然</option><option value="グルメ・食べ歩き">グルメ</option>
+                    <option value="歴史・文化">歴史</option><option value="体験型アクティビティ">体験</option>
+                </select>
+            </div>
+            <div class="form-group"><label>こだわり備考</label><textarea id="trFree" rows="2" placeholder="予算や外せない場所など"></textarea></div>
+            <div class="modal-buttons">
+                <button class="btn-submit" onclick="submitTravelPlan()">Perplexityで旅行計画を作成</button>
+                <button class="btn-cancel" onclick="closeModal('travelModal')">戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 項目追加・編集用モーダル (仮実装) -->
+    <div class="modal-overlay" id="itemEditModal">
+        <div class="modal-content">
+            <h2 style="text-align:center; font-size:18px; color:var(--primary-color); margin-top:0;">項目編集</h2>
+            <div class="form-group"><label>項目名</label><input type="text" id="editItemTitle"></div>
+            <div class="form-group"><label>アイコン (絵文字 or IMGパス)</label><input type="text" id="editItemIcon"></div>
+            <div class="form-group"><label>アクションタイプ</label>
+                <select id="editItemActionType">
+                    <option value="none">なし</option>
+                    <option value="shortcut">ショートカット</option>
+                    <option value="url">URL</option>
+                    <option value="modal">モーダル</option>
+                    <option value="function">関数</option>
+                </select>
+            </div>
+            <div class="form-group" id="editItemActionValGroup"><label>アクション値</label><input type="text" id="editItemActionVal"></div>
+            <div class="form-group" id="editItemActionLabelGroup"><label>ボタンラベル</label><input type="text" id="editItemActionLabel"></div>
+            <div class="form-group" id="editItemActionIconGroup"><label>ボタンアイコン (IMGパス)</label><input type="text" id="editItemActionIcon"></div>
+            
+            <div class="modal-buttons">
+                <button class="btn-submit" onclick="saveEditedItem()">保存</button>
+                <button class="btn-cancel" onclick="closeModal('itemEditModal')">キャンセル</button>
+            </div>
+        </div><!-- modal-content end -->
+    </div><!-- itemEditModal overlay end -->
+    <!-- 設定モーダル -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <h2 style="text-align:center; font-size:18px; color:var(--primary-color); margin-top:0;">設定</h2>
+
+            <div class="form-group">
+                <label>出社日設定</label>
+                <div id="companyDaysEdit" style="display:flex; justify-content:space-around; margin-top:10px;">
+                    <!-- 曜日チェックボックスがここに動的に生成される -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>ランダムメッセージリスト</label>
+                <textarea id="marqueeMessagesEdit" rows="5" style="width:100%;"></textarea>
+                <div style="display:flex; justify-content:flex-end; gap:5px; margin-top:5px;">
+                    <button class="btn-cancel" style="width:auto; padding:5px 10px;" onclick="addMarqueeMessage()">追加</button>
+                    <button class="btn-cancel" style="width:auto; padding:5px 10px;" onclick="removeMarqueeMessage()">削除</button>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-submit" onclick="saveSettings()">設定を保存</button>
+                <button class="btn-cancel" onclick="closeModal('settingsModal')">閉じる</button>
+            </div>
+        </div>
+    </div>
+</div><!-- modalContainer end -->
+
 <script>
     // --- Initial Data Structure (Default) ---
+    // AppDataの型定義（TypeScript風）
+    // interface AppData {
+    //     appSettings: {
+    //         lastVisitDate: string; // YYYY-MM-DD形式。日を跨いだチェックリセット用。
+    //         companyDays: number[]; // 出社曜日（0=日, 1=月, ..., 6=土）。例: [1, 2, 4]
+    //         marqueeMessages: string[]; // マーキー表示用メッセージリスト
+    //         companyLogoPath: string; // 出社日インジケーター用の画像パス (例: "IMG/BN.png")。
+    //     };
+    //     groups: Group[]; // タブグループの配列
+    // }
+
+    // interface Group {
+    //     id: string; // グループの一意識別子 (例: "g_daily", "g_other")
+    //     title: string; // タブに表示される名称 (例: "毎日", "その他")
+    //     icon: string; // Font Awesomeアイコンクラス名 (例: "fa-clock", "fa-ellipsis-h")
+    //     editable: boolean; // trueの場合、グループの編集・削除・並び替えが可能。falseの場合、固定グループでこれら操作は不可。
+    //     headerButton?: HeaderButton; // (オプション) ヘッダーに表示されるグループ固有のボタン
+    //     subgroups: SubGroup[]; // サブグループの配列
+    // }
+
+    // interface HeaderButton {
+    //     id: string; // ボタンの一意識別子 (例: "btn_nursery_qr")
+    //     title: string; // ボタンに表示されるテキスト
+    //     action: Action; // ボタンのアクション設定
+    // }
+
+    // interface SubGroup {
+    //     id: string; // サブグループの一意識別子 (例: "sg_daily_my_health")
+    //     title: string; // サブグループのタイトル
+    //     hidden?: boolean; // (オプション) trueの場合、このサブグループはレンダリングされない。
+    //     items: CheckItem[]; // チェック項目の配列
+    //     colorIndex: number; // 配色ロジックに基づき割り当てられた色のインデックス (0-4)。
+    // }
+
+    // interface CheckItem {
+    //     id: string; // チェック項目の一意識別子 (例: "fam_health_1")
+    //     title: string; // チェック項目に表示されるテキスト
+    //     icon: string | null; // 項目の横に表示される絵文字またはアイコンパス (例: "🩸", "IMG/custom_icon.png")
+    //     isChecked: boolean; // チェック状態
+    //     action: Action | null; // (オプション) アクションボタンの設定
+    //     healthTooltip?: HealthTooltip; // (オプション) ヘルプツールチップの内容
+    //     dynamic?: DynamicCondition; // (オプション) 動的表示条件（例: 曜日による表示切り替え）
+    //     type?: "categoryHeader"; // (特殊) カテゴリヘッダーの場合
+    // }
+
+    // interface Action {
+    //     label: string; // ボタンに表示されるラベル (テキスト、または画像パスの場合IMG/xxx.pngなど)
+    //     type: "shortcut" | "url" | "modal" | "function" | "mixed" | "image"; // アクションの種類
+    //     val: string | ActionMixedValue[] ; // ショートカット名、URL、モーダルID、関数名、またはmixedの場合の配列
+    //     icon?: string; // (オプション) ボタンに表示する画像アイコンのパス
+    // }
+
+    // interface ActionMixedValue {
+    //     type: "shortcut" | "url" ; // mixedアクション内のタイプ
+    //     label: string; // mixedアクション内のボタンラベル
+    //     val: string; // mixedアクション内のショートカット名またはURL
+    //     icon?: string; // (オプション) mixedアクション内のボタン画像アイコンのパス
+    // }
+
+    // interface HealthTooltip {
+    //     [key: `part${number}Title`]: string; // part1Title, part2Title, ...
+    //     [key: `part${number}Text`]: string;   // part1Text, part2Text, ...
+    // }
+
+    // interface DynamicCondition {
+    //     dayOfWeek?: number; // 特定の曜日 (0=日, 1=月, ..., 6=土)
+    //     weekNum?: number[]; // 特定の週番号 (例: [1, 3] = 第1, 第3週)
+    // }
+
+
     const defaultData = {
         appSettings: {
             lastVisitDate: "",
             companyDays: [1, 2, 4], // Mon, Tue, Thu
             marqueeMessages: [
-                "人生の最後に残るのは思い出であり、思い出は後からも配当を生む",
-                "50代の健康戦略：血糖値・血圧・筋肉・睡眠・メンタル",
-                "AI技術は日々進化している。キャッチアップを怠らない。"
-            ]
+                "人生で大切なのは、富の最大化ではなく経験の最大化",
+                "喜びを先延ばしにしないで、タイミングは「今」",
+                "「ゼロで死ぬ」とは、必要以上にため込まず、今しかできない経験に時間とお金を振り向けるという意思決定",
+                "人生の最後に残るのは思い出であり、思い出は後からも“配当”を与える",
+                "お金は「ライフエネルギー」として捉えると、使い方の精度が上がる",
+                "最強の投資先は経験であり、経験は“記憶の配当”として人生を豊かにし続ける",
+                "「モチベーションに頼らず、確実にできる行動を設定する」",
+                "怒りは否定でも我慢でもなく、「ある」と理解する",
+                "伝えるなら「事実・感情・希望」で整える",
+                "末尾に「…と思っただけ」を付けてみる（妄想の識別）"
+            ],
+            companyLogoPath: "IMG/BN.png"
         },
         groups: [
+            // g_daily (毎日)
             {
                 id: "g_daily",
                 title: "毎日",
-                icon: "fa-clock",
+                icon: "fa-clock", // FontAwesome icon
+                editable: false, // 固定タブ
                 subgroups: [
                     {
-                        id: "sg_health",
-                        title: "自分：50代の健康戦略",
+                        id: "sg_daily_my_health",
+                        title: "👨 自分：50代の健康戦略",
                         items: [
-                            { id: "it_1", title: "血糖値コントロール", icon: "🩸", isChecked: false, action: null },
-                            { id: "it_2", title: "血圧と血管（亜麻仁油）", icon: "💓", isChecked: false, action: null },
-                            { id: "it_3", title: "筋肉量（階段を登る）", icon: "💪", isChecked: false, action: null }
-                        ]
+                            { id: "fam_health_1", title: "1. 血糖値コントロール（食べすぎない、辛いもの控える）", icon: "🩸", isChecked: false, action: null, healthTooltip: { part1Title: "糖尿病・認知症・癌リスクに直結。血管老化を防ぐ最優先事項。", part1Text: "ベジファースト（野菜から）、糖質の過剰摂取防止。" } },
+                            { id: "fam_health_2", title: "2. 血圧と血管（亜麻仁油）", icon: "💓", isChecked: false, action: null, healthTooltip: { part1Title: "脳梗塞や心筋梗塞の引き金。50代はこのリスクが急上昇します。", part1Text: "減塩と、血管を柔らかく保つ良質な油（オメガ3など）の摂取。" } },
+                            { id: "fam_health_3", title: "3. 筋肉量（階段を登る）", icon: "💪", isChecked: false, action: null, healthTooltip: { part1Title: "代謝を維持し、将来の寝たきりを防ぐため。", part1Text: "タンパク質の摂取（毎食）と、週2〜3回の自重トレーニング。" } },
+                            { id: "fam_health_4", title: "4. 睡眠の質・脳回復", icon: "💤", isChecked: false, action: null, healthTooltip: { part1Title: "脳の老廃物を掃除し、自律神経を整える唯一の時間だから。", part1Text: "寝る前のスマホ断ち、決まった時間の起床。" } },
+                            { id: "fam_health_5", title: "5. メンタル・孤独回避", icon: "🧘", isChecked: false, action: null, healthTooltip: { part1Title: "慢性的なストレスは免疫力を下げ、万病の元になるため。", part1Text: "「何もしない時間」を意図的に作る、趣味のコミュニティを持つ。" } }
+                        ],
+                        colorIndex: 0 // 仮の色インデックス
                     },
                     {
-                        id: "sg_mind",
-                        title: "心がけ",
+                        id: "sg_daily_mind",
+                        title: "💡 心がけ",
                         items: [
-                            { id: "it_4", title: "おすしさいこうかよ", icon: "🍣", isChecked: false, action: { label: "おすし", type:"url", val: "https://www.google.com/search?q=sushi" } },
-                            { id: "it_5", title: "怒る技法", icon: "📖", isChecked: false, action: { label: "Kindle", type:"shortcut", val: "shortcuts://run-shortcut?name=OpenKindle" } },
-                            { id: "it_6", title: "AI100本ノック", icon: "🤖", isChecked: false, action: { label: "PDF", type:"url", val: "https://example.com/pdf" } }
-                        ]
+                            { id: "d3", title: "Die With Zero", icon: "💰", isChecked: false, action: { label: "Die With Zero", type: "shortcut", val: "Die With Zero" } },
+                            { id: "d4", title: "AI100本ノック", icon: "🤖", isChecked: false, action: { label: "PDF", type: "url", val: "https://fullswing.dena.com/pdf/AI_100tips_slide.pdf" } },
+                            { id: "d_humor", title: "ユーモア・いたずら心を持つ（ただしやり過ぎない）", icon: "😂", isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_daily_irritated",
+                        title: "💢 イライラしたら",
+                        items: [
+                            { id: "d_irritated", title: "抑肝散加陳皮半夏", icon: "💊", isChecked: false, action: { label: "漢方", type: "url", val: "https://www.kracie.co.jp/ph/k-therapy/product/symptom/menopause/frustration.html#:~:text=%E3%81%AA%E3%81%A3%E3%81%A6%E3%81%8D%E3%81%9F-,%E3%81%8A%E3%81%99%E3%81%99%E3%82%81%E3%81%AE%E6%BC%A2%E6%96%B9%E5%87%A6%E6%B3%A2,-%E6%8A%91%E8%82%9D%E6%95%A3" } },
+                            { id: "d2", title: "怒る技法", icon: "📖", isChecked: false, action: { label: "怒る技法", type: "shortcut", val: "怒る技法" } }
+                        ],
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_daily_childcare",
+                        title: "👶 育児",
+                        items: [
+                            { id: "d1", title: "おすしさいこうかよ", icon: "🍣", isChecked: false, action: { label: "おすし", type: "url", val: "https://tk.ismcdn.jp/mwimgs/4/3/375w/img_437bd1ff6f61737861b410cae52b0346356004.jpg" } },
+                            { id: "d_non_cognitive", title: "非認知機能", icon: "🌟", isChecked: false, action: null, healthTooltip: { part1Title: "「遊び」を設計する", part1Text: "幼児期の学びの中心は自発的・能動的な「遊び」で、遊びを通して「やってみたい→粘り強く→工夫する」が起きやすいと述べられています。[2] 家では、難易度が少しだけ高い遊び（例：積み木で“倒れない橋”、お手伝いで“最後まで運ぶ”など）を用意し、途中で詰まったら答えを言うより「どうしたら良さそう？」と試行錯誤を促すのが狙いに合います。[2]", part2Title: "具体的な“毎日”のしかけ（短く）", part2Text: "- 選べる目標を作る：「どっちにする？」で自分で決める機会を増やす（目標への主体性）。[2]- プロセスを言語化して褒める：「工夫したね」「続けたね」「友だちを待てたね」（結果より取り組み）。[1][2]- 小さな役割を任せる：家庭内プロジェクト（配膳、片付け、植物の水やり）で継続・調整・協力を同時に使う。[2]", part3Title: "親のコンディションも土台", part3Text: "OECDの整理では、親の情緒状態（メンタルヘルス等）や家庭のストレスは、子どもの社会情動的発達に影響しうる要因として扱われています。[1] 「子どものために完璧にやる」より、親が無理を減らして安定した応答（落ち着いて反応できる状態）を作ること自体が、回り道に見えて実は効果的です。[1]" } },
+                            { id: "d_child_teeth_hard", title: "歯を丈夫に・硬い食べ物を噛む", icon: "🦷", isChecked: false, action: null },
+                            { id: "d_child_sugar_reduce", title: "甘い物を摂る機会を減らす", icon: "🍬", isChecked: false, action: null }
+                        ],
+                        colorIndex: 2
+                    },
+                    {
+                        id: "sg_daily_routine",
+                        title: "🔄 ルーティン",
+                        items: [
+                            { id: "d5", title: "天気確認", icon: "🌤️", isChecked: false, action: { label: "", type: "mixed", val: [ { type: "shortcut", label: "WeatherNews", val: "WeatherNews", icon: "IMG/weathernewspng.png" }, { type: "shortcut", label: "Y天気", val: "Y天気", icon: "IMG/Ytenki.png" } ] } },
+                            { id: "d6", title: "洗濯機を回す", icon: "🧺", isChecked: false, action: { label: "お洗濯情報", type: "url", val: "https://weathernews.jp/s/laundry/area/chiba/12101/", icon: "IMG/sentaku.jpeg" } },
+                            { id: "d7", title: "テレビ体操", icon: "📺", isChecked: false, action: { label: "", type: "mixed", val: [ { type: "shortcut", label: "NHK one", val: "NHK one", icon: "IMG/nhk.png" }, { type: "shortcut", label: "Streaks", val: "Streaks", icon: "IMG/str.webp" } ] } },
+                            { id: "d_flaxseed", title: "アマニ油を摂取", icon: null, isChecked: false, action: null },
+                            { id: "d_seieshi_ai", title: "生成AIを使う", icon: null, isChecked: false, action: { label: "", type: "mixed", val: [ { type: "shortcut", label: "Gemini", val: "Gemini", icon: "IMG/gemini2.png" }, { type: "shortcut", label: "NotebookLM", val: "NotebookLM", icon: "IMG/notebooklm.png" }, { type: "shortcut", label: "Perplexity", val: "Perplexity", icon: "IMG/Per.png" }, { type: "shortcut", label: "ChatGPT", val: "ChatGPT", icon: "IMG/CGPT.webp" } ] } },
+                            { id: "d8", title: "✓ タスク", icon: null, isChecked: false, action: { label: "TickTick", type: "shortcut", val: "ticktick", icon: "https://img.icons8.com/color/512/tick-tick.png" } },
+                            { id: "d_obsidian", title: "Obsidian", icon: "✍️", isChecked: false, action: { label: "", type: "mixed", val: [ { type: "shortcut", label: "Daily Note", val: "Obsidian Daily" }, { type: "shortcut", label: "Obsidian", val: "Obsidian", icon: "IMG/unnamed.webp" } ] } },
+                            { id: "d9", title: "カレンダー", icon: "📅", isChecked: false, action: { label: "", type: "mixed", val: [ { type: "shortcut", label: "Googleカレンダー", val: "Googleカレンダー", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" }, { type: "shortcut", label: "TimeTree", val: "TimeTree", icon: "IMG/tt.png" } ] } },
+                            { id: "d_gmail", title: "Gmail", icon: "📧", isChecked: false, action: { label: "Gmail", type: "shortcut", val: "Gmail", icon: "IMG/gmai.png" } },
+                            { id: "d_codmon", title: "コドモン", icon: "📱", isChecked: false, action: { label: "コドモン", type: "shortcut", val: "コドモン", icon: "IMG/cdmn.png" } },
+                            { id: "d_eos", title: "EOS R8", icon: "📷", isChecked: false, action: { label: "Camera Connect", type: "shortcut", val: "Camera Connect", icon: "IMG/cc.webp" } },
+                            { id: "d_diary", title: "日記", icon: "📔", isChecked: false, action: { label: "ジャーナル", type: "shortcut", val: "ジャーナル", icon: "IMG/j.png" } },
+                            { id: "d_photos", title: "iPhone写真/動画バックアップ", icon: "📱", isChecked: false, action: { label: "Photos", type: "shortcut", val: "photos mobile", icon: "IMG/pht.png" } }
+                        ],
+                        colorIndex: 2
+                    },
+                    {
+                        id: "sg_daily_housework",
+                        title: "🧹 家事",
+                        items: [
+                            { id: "d_towel", title: "洗面所のタオル交換", icon: "🧴", isChecked: false, action: null },
+                            { id: "d10", title: "窓の結露拭き", icon: "🪟", isChecked: false, action: null },
+                            { id: "d12", title: "お風呂洗い確認", icon: "🛁", isChecked: false, action: { label: "LINE連絡", type: "shortcut", val: "お風呂掃除済み" } },
+                            { id: "d13", title: "加湿器の水", icon: "💧", isChecked: false, action: null },
+                            { id: "d14", title: "ゴミ捨て", icon: "🗑️", isChecked: false, action: null },
+                            { id: "d_tue", title: "ダンボール出し (第1・3火曜)", icon: "📦", isChecked: false, action: null, dynamic: { dayOfWeek: 2, weekNum: [1, 3] } }
+                        ],
+                        colorIndex: 3
+                    },
+                    {
+                        id: "sg_daily_outing",
+                        title: "🚗 お出かけ",
+                        items: [
+                            { id: "d15", title: "カーシェア確認", icon: "🚗", isChecked: false, action: { label: "三井のカーシェアーズ", type: "shortcut", val: "三井のカーシェアーズ", icon: "IMG/carshare.webp" } },
+                            { id: "d16", title: "お出かけ情報", icon: "🎡", isChecked: false, action: { label: "", type: "mixed", val: [ { type: "shortcut", label: "アソビュー", val: "アソビュー", icon: "IMG/aso.png" }, { type: "url", label: "いこーよ", val: "https://iko-yo.net/", icon: "IMG/ikoyo.webp" }, { type: "url", label: "Rank", val: "https://www.jalan.net/ranking/" } ] } },
+                            { id: "d_ai_outing", title: "AIおでかけプラン提案", icon: "✨", isChecked: false, action: { label: "AI実行", type: "modal", val: "aiModal" } }
+                        ],
+                        colorIndex: 3
+                    },
+                    {
+                        id: "sg_daily_travel_plan",
+                        title: "✈️ 旅行計画",
+                        items: [
+                            { id: "d_ai_travel", title: "AI旅行プラン・日程提案", icon: "✈️", isChecked: false, action: { label: "旅行計画", type: "modal", val: "travelModal" } },
+                            { id: "d17", title: "トラベル", icon: "🏨", isChecked: false, action: { label: "楽天トラベル", type: "shortcut", val: "楽天トラベル", icon: "IMG/raku_T.png" } }
+                        ],
+                        colorIndex: 3
                     }
                 ]
             },
-            {
-                id: "g_work",
-                title: "出社",
-                icon: "fa-building",
-                subgroups: []
-            },
+            // g_holiday (休日)
             {
                 id: "g_holiday",
                 title: "休日",
-                icon: "fa-campground",
+                icon: "fa-campground", // FontAwesome icon
+                editable: false, // 固定タブ
+                subgroups: [
+                    {
+                        id: "sg_holiday_todo",
+                        title: "やる事",
+                        items: [
+                            { id: "ho_wash", title: "洗濯機を回す", icon: "🧺", isChecked: false, action: null },
+                            { id: "ho_dish", title: "食洗機の食器をしまう", icon: "🍽️", isChecked: false, action: null },
+                            { id: "ho_laundry_top", title: "洗濯物を干す", icon: "👕", isChecked: false, action: null },
+                            { id: "ho7", title: "祖父母電話", icon: "📺", isChecked: false, action: { label: "Alexa", type: "shortcut", val: "Alexa" } }
+                        ],
+                        colorIndex: 4
+                    },
+                    {
+                        id: "sg_holiday_organize",
+                        title: "🧹 整理",
+                        items: [
+                            { id: "ho_org_clothes", title: "洋服の整理", icon: "👕", isChecked: false, action: null },
+                            { id: "ho_org_desk", title: "PCの机の上の整理", icon: "🖥️", isChecked: false, action: null },
+                            { id: "ho_org_bulky_waste", title: "粗大ごみ手続き", icon: "🗑️", isChecked: false, action: null }
+                        ],
+                        colorIndex: 4
+                    },
+                    {
+                        id: "sg_holiday_organize_method",
+                        title: "💡 整理方法 (タップで詳細)",
+                        items: [
+                            { id: "ho_org_seiri", title: "1. 整理 (Seiri：要る/要らない)", icon: null, isChecked: false, action: null, healthTooltip: { part1Title: "目的は「不要物を除く」ことです。", part1Text: "手順（机1台・15分目安）：ゴミ袋を用意し、明らかなゴミを即捨て。机の上の物を全部どけて、4分類（毎日使う/時々使う/別の部屋/捨て・保留）の仮置きを作る。「保留」は箱にまとめて期限を決めて再判定。" } },
+                            { id: "ho_org_seiton", title: "2. 整頓 (Seiton：定位置・取りやすさ)", icon: null, isChecked: false, action: null, healthTooltip: { part1Title: "目的は「必要品を使いやすい配置にする」ことです。", part1Text: "机向けの決め方（10〜20分）：“毎日使う物だけ”を机上に戻す。置き場所・置き方をルール化（よく使う物ほど手前/利き手側）。小物は「1トレー/1ポーチ」に集約。" } },
+                            { id: "ho_org_seiso", title: "3. 清掃 (Seiso：掃除＋点検)", icon: null, isChecked: false, action: null, healthTooltip: { part1Title: "目的は「きれいにして、異常にも気づける状態にする」ことです。", part1Text: "天板→キーボード周辺→モニター下の順に拭く（物を戻す前が最速）。汚れが出る場所＝散らかる原因になりやすい場所なので、次の配置改善のヒントにする。" } },
+                            { id: "ho_org_seiketsu", title: "4. 清潔 (Seiketsu：標準化)", icon: null, isChecked: false, action: null, healthTooltip: { part1Title: "目的は、整理〜清掃を「いつでも再現できる形」にすることです。", part1Text: "“完成形”の写真を1枚撮って、机の基準にする。ラベル・定位置を決め、誰が見ても戻せる状態にする。" } },
+                            { id: "ho_org_shitsuke", title: "5. しつけ (Shitsuke：習慣化)", icon: null, isChecked: false, action: null, healthTooltip: { part1Title: "目的は、決めた基準を守る行動を習慣にすることです。", part1Text: "1日1回、終業時に「机上＝入力機器＋トレー1個」まで戻す運用にする。週1回の簡易チェック（5分）で、基準からズレた物だけ戻すようにする。" } }
+                        ],
+                        colorIndex: 4
+                    },
+                    {
+                        id: "sg_holiday_ai_outing",
+                        title: "✨ AIおでかけ計画",
+                        items: [
+                            { id: "ho0", title: "AIおでかけプラン提案", icon: "✨", isChecked: false, action: { label: "AI実行", type: "modal", val: "aiModal" } }
+                        ],
+                        hidden: true,
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_holiday_ai_travel",
+                        title: "✈️ AI旅行計画",
+                        items: [
+                            { id: "ho_travel", title: "AI旅行プラン・日程提案", icon: "✈️", isChecked: false, action: { label: "旅行計画", type: "modal", val: "travelModal" } }
+                        ],
+                        hidden: true,
+                        colorIndex: 3
+                    },
+                    {
+                        id: "sg_holiday_my_prep",
+                        title: "自分の準備",
+                        items: [
+                            { id: "ho1", title: "着替え", icon: "👕", isChecked: false, action: null },
+                            { id: "ho2", title: "Watch装着", icon: "⌚️", isChecked: false, action: null },
+                            { id: "ho3", title: "鍵をつける", icon: "🔑", isChecked: false, action: null },
+                            { id: "ho4", title: "カバン準備", icon: "🎒", isChecked: false, action: null },
+                            { id: "ho5", title: "バッテリー", icon: "🔋", isChecked: false, action: null },
+                            { id: "ho6", title: "ケーブル", icon: "🔌", isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_holiday_car_share",
+                        title: "カーシェア",
+                        items: [
+                            { id: "ho8", title: "カーシェア", icon: "🚗", isChecked: false, action: { label: "CS", type: "shortcut", val: "三井のカーシェアーズ" } },
+                            { id: "ho9", title: "ジュニアシート", icon: "👶", isChecked: false, action: null },
+                            { id: "ho10", title: "酔い止め", icon: "🤢", isChecked: false, action: null },
+                            { id: "ho11", title: "ETCカード", icon: "🚗", isChecked: false, action: null },
+                            { id: "ho12", title: "眼鏡/サングラス", icon: null, isChecked: false, action: null },
+                            { id: "ho13", title: "ベビーカー", icon: "🛒", isChecked: false, action: null },
+                            { id: "ho14", title: "ガム", icon: "🍬", isChecked: false, action: null }
+                        ],
+                        colorIndex: 3
+                    },
+                    {
+                        id: "sg_holiday_outing_luggage",
+                        title: "おでかけ荷物",
+                        items: [
+                            { id: "ho15", title: "オムツ", icon: "🩷", isChecked: false, action: null },
+                            { id: "ho16", title: "iPad", icon: "📱", isChecked: false, action: null },
+                            { id: "ho17", title: "除菌シート", icon: "🧻", isChecked: false, action: null },
+                            { id: "ho18", title: "リュック/ガラガラ", icon: "🎒", isChecked: false, action: null },
+                            { id: "ho_bottle", title: "ステンレスボトル(飲み物)", icon: "🍼", isChecked: false, action: null },
+                            { id: "ho19", title: "ティッシュ", icon: "🧻", isChecked: false, action: null },
+                            { id: "ho20", title: "着替え", icon: "👕", isChecked: false, action: null },
+                            { id: "ho21", title: "ハンカチ", icon: "🧼", isChecked: false, action: null }
+                        ],
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_holiday_transport",
+                        title: "交通機関",
+                        items: [
+                            { id: "ho22", title: "バス", icon: "🚌", isChecked: false, action: { label: "", type: "mixed", val: [ { type: "url", label: "SP", val: "https://heiwakotsu.com/timefare_baytown/19time_baytown.pdf" }, { type: "url", label: "マリン", val: "https://heiwakotsu.com/timefare_baytown/baytown00_3.pdf" } ] } },
+                            { id: "ho23", title: "電車：海浜幕張駅", icon: "🚃", isChecked: false, action: { label: "時刻表", type: "url", val: "https://transit.yahoo.co.jp/timetable/22226/950" } }
+                        ],
+                        colorIndex: 2
+                    },
+                    {
+                        id: "sg_holiday_meals",
+                        title: "🍽️ 食事",
+                        items: [
+                            { id: "ho_okano", title: "cafe okano", icon: "☕️", isChecked: false, action: { label: "X", type: "url", val: "https://x.com/cafeokano?s=21&t=EjJBVaQXUmSoBZe-IjkvnA" } }
+                        ],
+                        colorIndex: 4
+                    },
+                    {
+                        id: "sg_holiday_housework_pm",
+                        title: "家事(午後)",
+                        items: [
+                            { id: "ho_h8", title: "洗濯物の取り込み", icon: "🧺", isChecked: false, action: null },
+                            { id: "ho_h9", title: "洗濯物畳み", icon: "👕", isChecked: false, action: null },
+                            { id: "ho_h10", title: "パジャマ準備", icon: "🌙", isChecked: false, action: null },
+                            { id: "ho_h11", title: "オムツ補充", icon: "🩷", isChecked: false, action: null },
+                            { id: "ho_window_close", title: "窓閉め", icon: "🪟", isChecked: false, action: null },
+                            { id: "ho_h12", title: "追い焚き", icon: "🔥", isChecked: false, action: null },
+                            { id: "ho_wash_reserve", title: "風呂後に翌日の洗濯機予約", icon: null, isChecked: false, action: { label: "時間", type: "function", val: "calcHours" } }
+                        ],
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_holiday_grooming",
+                        title: "身だしなみ",
+                        items: [
+                            { id: "ho_groom_nails", title: "爪切り", icon: "💅", isChecked: false, action: null },
+                            { id: "ho_groom_ears", title: "耳掃除", icon: "👂", isChecked: false, action: null },
+                            { id: "ho_groom_sideburns", title: "もみあげ", icon: "✂️", isChecked: false, action: null },
+                            { id: "ho_groom_nose", title: "鼻の手入れ", icon: "👃", isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    }
+                ]
+            },
+            // g_work (出社)
+            {
+                id: "g_work",
+                title: "出社",
+                icon: "fa-building", // FontAwesome icon
+                editable: false, // 固定タブ
+                subgroups: [
+                    {
+                        id: "sg_work_prep",
+                        title: "出社準備",
+                        items: [
+                            { id: "w1", title: "髭剃り", icon: "🪒", isChecked: false, action: null },
+                            { id: "w2", title: "着替え", icon: "👕", isChecked: false, action: null },
+                            { id: "w3", title: "トイレ", icon: "🚽", isChecked: false, action: null },
+                            { id: "w4", title: "Watch装着", icon: "⌚️", isChecked: false, action: null },
+                            { id: "w5", title: "鍵をつける", icon: "🔑", isChecked: false, action: null },
+                            { id: "w6", title: "髪の毛セット", icon: "👱", isChecked: false, action: null },
+                            { id: "w8", title: "カバン準備", icon: "🎒", isChecked: false, action: null },
+                            { id: "w9", title: "空の水筒を入れる", icon: "🚰", isChecked: false, action: null },
+                            { id: "w10", title: "マスク", icon: "😷", isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    }
+                ]
+            },
+            // g_home (在宅)
+            {
+                id: "g_home",
+                title: "在宅",
+                icon: "fa-home", // FontAwesome icon
+                editable: false, // 固定タブ
+                subgroups: [
+                    {
+                        id: "sg_home_prep",
+                        title: "自分の準備",
+                        items: [
+                            { id: "h_prep_change", title: "着替え", icon: "👕", isChecked: false, action: null },
+                            { id: "h_prep_watch", title: "Watch装着", icon: "⌚️", isChecked: false, action: null },
+                            { id: "h_prep_key", title: "鍵をつける", icon: "🔑", isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_home_am",
+                        title: "午前",
+                        items: [
+                            { id: "h_wash", title: "洗濯機を回す", icon: "🧺", isChecked: false, action: null },
+                            { id: "h_dish", title: "食洗機の食器をしまう", icon: "🍽️", isChecked: false, action: null },
+                            { id: "h4", title: "洗濯物を干す", icon: "👕", isChecked: false, action: null },
+                            { id: "h1", title: "トイレ掃除", icon: "🚽", isChecked: false, action: { label: "LINE連絡", type: "shortcut", val: "トイレ掃除済み" } },
+                            { id: "h2", title: "窓開け", icon: "🪟", isChecked: false, action: null },
+                            { id: "h3", title: "ルンバ確認", icon: "🤖", isChecked: false, action: null },
+                            { id: "h5", title: "食洗機をかける", icon: "🍽️", isChecked: false, action: null },
+                            { id: "h6", title: "牛乳ヨーグルト確認", icon: "🥛", isChecked: false, action: null },
+                            { id: "h7", title: "買い物リスト", icon: "🛒", isChecked: false, action: { label: "CAJICO", type: "shortcut", val: "CAJICO" } }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_home_pm",
+                        title: "午後",
+                        items: [
+                            { id: "h8", title: "洗濯物の取り込み", icon: "🧺", isChecked: false, action: null },
+                            { id: "h9", title: "洗濯物畳み", icon: "👕", isChecked: false, action: null },
+                            { id: "h10", title: "パジャマ準備", icon: "🌙", isChecked: false, action: null },
+                            { id: "h11", title: "オムツ補充", icon: "🩷", isChecked: false, action: null },
+                            { id: "h_window_close", title: "窓閉め", icon: "🪟", isChecked: false, action: null },
+                            { id: "h12", title: "追い焚き", icon: "🔥", isChecked: false, action: null }
+                        ],
+                        colorIndex: 1
+                    }
+                ]
+            },
+            // g_nursery (保育園)
+            {
+                id: "g_nursery",
+                title: "保育園",
+                icon: "fa-child", // FontAwesome icon
+                editable: false, // 固定タブ
+                headerButton: { // `登降園QRを表示` ボタン
+                    id: "btn_nursery_qr",
+                    title: "📱 登降園QRを表示",
+                    action: { label: "登降園QR", type: "shortcut", val: "登降園QR" }
+                },
+                subgroups: [
+                    {
+                        id: "sg_nursery_dropoff_prep",
+                        title: "🌅 登園：準備・対応",
+                        items: [
+                            { id: "to2", title: "保育園の水筒", icon: "🧴", isChecked: false, action: null },
+                            { id: "to3", title: "うがいコップ", icon: "🥤", isChecked: false, action: null },
+                            { id: "to4", title: "着替え準備", icon: "👕", isChecked: false, action: null },
+                            { id: "to5", title: "マイドール", icon: "🧸", isChecked: false, action: null },
+                            { id: "to6", title: "登園証をつける", icon: "📛", isChecked: false, action: null },
+                            { id: "to7", title: "靴下チェック", icon: "🧦", isChecked: false, action: null },
+                            { id: "to8", title: "たまごボーロ", icon: "🍪", isChecked: false, action: null },
+                            { id: "to9", title: "打刻", icon: "📲", isChecked: false, action: null }
+                        ],
+                        colorIndex: 2
+                    },
+                    {
+                        id: "sg_nursery_dropoff_nursery",
+                        title: "📛 登園：保育園",
+                        items: [
+                            { type: "categoryHeader", title: "毎回" }, // categoryHeader needs separate handling from items
+                            { id: "to_n_shoes", title: "靴を靴箱（くつした）", icon: "👟", isChecked: false, action: null },
+                            { id: "to_n_clockin", title: "打刻", icon: "📲", isChecked: false, action: null },
+                            { id: "to_n_meet", title: "集合場所確認（外、中）", icon: "📍", isChecked: false, action: null },
+                            { id: "to_n_refill", title: "着替え補充", icon: "👕", isChecked: false, action: null },
+                            { id: "to_n_temp", title: "検温", icon: "🌡️", isChecked: false, action: null },
+                            { id: "to_n_cup", title: "コップ", icon: "🥤", isChecked: false, action: null },
+                            { id: "to_n_doll", title: "マイドール", icon: "🧸", isChecked: false, action: null },
+                            { type: "categoryHeader", title: "中（室内）" },
+                            { id: "to_n_in_bottle", title: "水筒", icon: "🍼", isChecked: false, action: null },
+                            { type: "categoryHeader", title: "外（園庭）" },
+                            { id: "to_n_out_jacket", title: "ジャケット", icon: "🧥", isChecked: false, action: null },
+                            { id: "to_n_out_hat", title: "帽子", icon: "🧢", isChecked: false, action: null },
+                            { id: "to_n_out_socks", title: "くつした", icon: "🧦", isChecked: false, action: null },
+                            { id: "to_n_out_shoes", title: "クツ", icon: "👟", isChecked: false, action: null },
+                            { id: "to_n_out_bottle", title: "水筒", icon: "🍼", isChecked: false, action: null }
+                        ],
+                        colorIndex: 2
+                    },
+                    {
+                        id: "sg_nursery_pickup_go",
+                        title: "🌆 降園：お迎え・行き",
+                        items: [
+                            { id: "r3", title: "ジャケット", icon: "🧥", isChecked: false, action: null },
+                            { id: "r4", title: "お風呂を沸かす", icon: "🛀", isChecked: false, action: null },
+                            { id: "r5", title: "打刻", icon: "📲", isChecked: false, action: null },
+                            { id: "r_fri_futon", title: "金曜：布団カバー", icon: "🗓️", isChecked: false, action: null, dynamic: { dayOfWeek: 5 } },
+                            { id: "r_fri_cot", title: "金曜：コットカバー", icon: "🗓️", isChecked: false, action: null, dynamic: { dayOfWeek: 5 } },
+                            { id: "r_fri_shoes", title: "金曜：靴", icon: "🗓️", isChecked: false, action: null, dynamic: { dayOfWeek: 5 } },
+                            { id: "r_fri_hat", title: "金曜：帽子", icon: "🗓️", isChecked: false, action: null, dynamic: { dayOfWeek: 5 } },
+                            { id: "r_fri_jacket", title: "金曜：ジャケット", icon: "🗓️", isChecked: false, action: null, dynamic: { dayOfWeek: 5 } }
+                        ],
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_nursery_pickup_home",
+                        title: "🏠 降園：帰宅後",
+                        items: [
+                            { id: "r6", title: "服をネットへ", icon: "👕", isChecked: false, action: null },
+                            { id: "r7", title: "オキシ漬け", icon: "🧼", isChecked: false, action: null },
+                            { id: "r_wash_reserve", title: "風呂後に翌日の洗濯機予約", icon: null, isChecked: false, action: { label: "時間", type: "function", val: "calcHours" } }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_nursery_bus_operation",
+                        title: "🚌 バス運行",
+                        items: [
+                            { id: "to1", title: "バス時刻表", icon: "🚌", isChecked: false, action: { label: "PDF", type: "url", val: "https://heiwakotsu.com/timefare_baytown/19time_baytown.pdf" } },
+                            { id: "r1", title: "ミラリオへ", icon: "🚌", isChecked: false, action: { label: "PDF", type: "url", val: "https://heiwakotsu.com/timefare_baytown/19time_baytown.pdf" } },
+                            { id: "r2", title: "Sパークへ", icon: "🚌", isChecked: false, action: { label: "PDF", type: "url", val: "https://heiwakotsu.com/timefare_baytown/17time_baytown.pdf" } }
+                        ],
+                        colorIndex: 3
+                    }
+                ]
+            },
+            // g_family (家族)
+            {
+                id: "g_family",
+                title: "家族",
+                icon: "fa-users", // FontAwesome icon
+                editable: false, // 固定タブ
+                subgroups: [
+                    {
+                        id: "sg_family_child",
+                        title: "👧 子",
+                        items: [
+                            { id: "child_health_1", title: "心理的安定性", icon: "🤗", isChecked: false, action: null, healthTooltip: { part1Title: "安全基地としての親の存在確認", part1Text: "スキンシップを意識的に増やす。子どもの感情を受け入れ、その背景を理解する。" } },
+                            { id: "child_health_2", title: "睡眠リズム", icon: "😴", isChecked: false, action: null, healthTooltip: { part1Title: "夜の就寝時刻の固定", part1Text: "就寝ルーティン（入浴→絵本→消灯）を固定し、休日も大きく崩さない。" } },
+                            { id: "child_health_3", title: "栄養管理", icon: "🥗", isChecked: false, action: null, healthTooltip: { part1Title: "主食・主菜・副菜の型を作る", part1Text: "まずは「朝：タンパク質」「夜：野菜＋汁物」を固定して迷いを減らす。" } },
+                            { id: "child_health_5", title: "甘いもの管理", icon: "🍬", isChecked: false, action: null, healthTooltip: { part1Title: "“量”より”頻度”を減らす", part1Text: "おやつの時間を固定（ダラダラ食べを避ける）。甘い飲み物は日常化させず基本は水・お茶に寄せる。糖が口内に残る時間を短くする考え方 solasto-career" } },
+                            { id: "child_health_6", title: "噛む力（咀嚼）", icon: "🦷", isChecked: false, action: null, healthTooltip: { part1Title: "よく噛む習慣で顎・歯列の土台を作る", part1Text: "「流し込み食べ」を減らす（ひと口ごとに飲み物を挟まない）。噛みごたえのある食材（根菜、きのこ、厚め肉、海藻など）を”無理なく”増やす。口腔機能の観点（咀嚼の獲得）" } },
+                            { id: "child_health_7", title: "口の使い方", icon: "👄", isChecked: false, action: null, healthTooltip: { part1Title: "唇を閉じて噛む/口呼吸のサインを拾う", part1Text: "食事中に口が開きがちなら「お口チャックでモグモグ」と短く促す。口腔周囲筋や口唇閉鎖の課題がある場合は支援対象になり得る" } },
+                            { id: "child_health_8", title: "噛み方の偏り", icon: "↔️", isChecked: false, action: null, healthTooltip: { part1Title: "片側噛み（偏咀嚼）を減らす", part1Text: "左右どちらで噛んでいるか観察し、気づいたら声かけで反対側も使う練習。偏咀咀の確認は評価項目として挙げられている" } },
+                            { id: "child_health_9", title: "受診・相談の目安", icon: "🩺", isChecked: false, action: null, healthTooltip: { part1Title: "口腔機能の遅れを早めに見極める", part1Text: "「噛めない」「丸呑み」「むせやすい」「発音が気になる」「口がいつも開いている」などが続く場合、歯科（小児歯科）で相談。口腔機能発達不全症は早期の評価・介入が重要という考え方" } },
+                            { id: "child_health_10", title: "運動習慣", icon: "🏃‍♀️", isChecked: false, action: null, healthTooltip: { part1Title: "全身を使う遊びの“毎週の型”", part1Text: "公園遊び・散歩・鬼ごっこ・ボールなど、週の中で固定枠を作る（平日短め＋休日長め）。" } },
+                            { id: "child_health_11", title: "社会性", icon: "🤝", isChecked: false, action: null, healthTooltip: { part1Title: "友達トラブルを”学び”に変える", part1Text: "まず気持ちを受け止めてから「次どうする？」と一緒に考える（裁くより再発防止の作戦会議）。" } },
+                            { id: "child_health_12", title: "学習（就学前の土台）", icon: "📚", isChecked: false, action: null, healthTooltip: { part1Title: "ワークより言語・好奇心", part1Text: "絵本の読み聞かせ＋「どう思う？」の会話を増やす。数・文字は生活の中（買い物、時計、カレンダー）で触れる。" } }
+                        ],
+                        colorIndex: 2
+                    },
+                    {
+                        id: "sg_family_child_info",
+                        title: "👶 育児情報",
+                        items: [
+                            { id: "fam_info_sukusuku", title: "すくすく子育て", icon: null, isChecked: false, action: { label: "Link", type: "url", val: "https://www.sukusuku.com/contents/theme/sukusuku" } },
+                            { id: "fam_info_hello", title: "ハローちびっこモンスター", icon: null, isChecked: false, action: { label: "NHK", type: "url", val: "https://www.web.nhk/tv/pl/series-tep-QJG2G3956Y" } },
+                            { id: "fam_info_nhk_learning", title: "NHKラーニング", icon: null, isChecked: false, action: { label: "NHK", type: "url", val: "https://www.web.nhk/tv/an/nlearning/pl/series-tep-61485925G6/list?tep=WX7WG5X11V" } }
+                        ],
+                        colorIndex: 3
+                    },
+                    {
+                        id: "sg_family_hospital",
+                        title: "🏥 通院時チェックリスト",
+                        items: [
+                            { id: "fam_hospital_mynumber_child", title: "子マイナンバー", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_mynumber_pin", title: "マイナンバー暗証番号", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_benefit_ticket", title: "受給券", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_temperature", title: "検温", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_diaper_set", title: "おむつセット", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_mask", title: "マスク", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_tissues", title: "ティッシュ", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_disinfecting_wipes", title: "除菌シート", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_water_bottle", title: "水筒", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_toys_tablet", title: "おもちゃ・タブレット", icon: null, isChecked: false, action: null },
+                            { id: "fam_hospital_change_clothes", title: "着替え", icon: null, isChecked: false, action: null }
+                        ],
+                        colorIndex: 0
+                    },
+                    {
+                        id: "sg_family_wife",
+                        title: "👩 妻",
+                        items: [
+                            { type: "categoryHeader", title: "🏥 健康" }, // categoryHeader needs separate handling from items
+                            { id: "fam_wi_health", title: "リラックス", icon: "🛀", isChecked: false, action: null }
+                        ],
+                        colorIndex: 1
+                    },
+                    {
+                        id: "sg_family_parents",
+                        title: "👴👵 父母",
+                        items: [
+                            { type: "categoryHeader", title: "🏥 健康" }, // categoryHeader needs separate handling from items
+                            { id: "fam_pa_health", title: "体調確認", icon: "📞", isChecked: false, action: null }
+                        ],
+                        colorIndex: 4
+                    }
+                ]
+            },
+            // g_other (その他) - Editable
+            {
+                id: "g_other",
+                title: "その他",
+                icon: "fa-ellipsis-h", // FontAwesome icon
+                editable: true, // Editable tab
                 subgroups: []
             }
         ]
@@ -328,11 +1167,21 @@
     let appData = JSON.parse(localStorage.getItem('myChecklistApp')) || defaultData;
     let activeGroupId = appData.groups[0].id;
     let isEditing = false;
+    let currentItemForEdit = null; // 編集中の項目を保持
 
     // --- Core Logic ---
 
     function init() {
+        // Initial load, check for reset conditions
         checkDateReset();
+        // Load active group from localStorage if available, otherwise use first group
+        const storedActiveGroupId = localStorage.getItem('activeGroupId');
+        if (storedActiveGroupId && appData.groups.some(g => g.id === storedActiveGroupId)) {
+            activeGroupId = storedActiveGroupId;
+        } else {
+            activeGroupId = appData.groups[0].id;
+        }
+
         renderHeader();
         renderTabs();
         renderMain();
@@ -340,20 +1189,28 @@
 
     function saveData() {
         localStorage.setItem('myChecklistApp', JSON.stringify(appData));
+        localStorage.setItem('activeGroupId', activeGroupId); // Save active group
     }
 
     // 日付変更時のリセット処理
     function checkDateReset() {
-        const today = new Date().toDateString();
-        if (appData.appSettings.lastVisitDate !== today) {
-            // Reset all checks
-            appData.groups.forEach(g => {
-                g.subgroups.forEach(sg => {
-                    sg.items.forEach(item => item.isChecked = false);
+        const now = new Date();
+        const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const lastClearDate = appData.appSettings.lastVisitDate;
+
+        if (lastClearDate !== today) {
+            appData.groups.forEach(group => {
+                group.subgroups.forEach(subgroup => {
+                    subgroup.items.forEach(item => {
+                        if (item.type !== "categoryHeader") { // カテゴリヘッダーはリセットしない
+                            item.isChecked = false;
+                        }
+                    });
                 });
             });
             appData.appSettings.lastVisitDate = today;
             saveData();
+            // No reload here, init() will call render functions
         }
     }
 
@@ -368,32 +1225,65 @@
             `${now.getMonth()+1}月${now.getDate()}日 (${days[dayIdx]})`;
 
         // 出社日バッジ
-        const badge = document.getElementById('companyBadge');
+        const companyBadge = document.getElementById('companyBadge');
+        const companyLogoPath = appData.appSettings.companyLogoPath;
         if (appData.appSettings.companyDays.includes(dayIdx)) {
-            badge.classList.add('active');
+            companyBadge.classList.add('active');
+            companyBadge.innerHTML = `<img src="${companyLogoPath}" alt="BN Logo">`;
         } else {
-            badge.classList.remove('active');
+            companyBadge.classList.remove('active');
+            companyBadge.innerHTML = '';
         }
 
         // Marquee Random Message
         const msgs = appData.appSettings.marqueeMessages;
-        // Simple random pick for demo
-        const msg = msgs[Math.floor(Math.random() * msgs.length)];
-        document.getElementById('marqueeText').innerText = msg;
+        const marqueeTextEl = document.getElementById('marqueeText');
+        if (msgs.length > 0) {
+            const msg = msgs[Math.floor(Math.random() * msgs.length)];
+            marqueeTextEl.innerText = msg;
+        } else {
+            marqueeTextEl.innerText = '';
+        }
+        // Marquee animation reset (if needed, though CSS animation usually handles it)
+        marqueeTextEl.style.animation = 'none';
+        marqueeTextEl.offsetHeight; /* trigger reflow */
+        marqueeTextEl.style.animation = null;
+
+        // グループ固有のヘッダーボタン
+        const groupHeaderButtonArea = document.getElementById('groupHeaderButtonArea');
+        groupHeaderButtonArea.innerHTML = '';
+        const currentGroup = appData.groups.find(g => g.id === activeGroupId);
+        if (currentGroup && currentGroup.headerButton) {
+            const btn = document.createElement('button');
+            btn.className = 'reset-button qr-button'; // 仮のスタイル
+            btn.innerText = currentGroup.headerButton.title;
+            // Pass action object directly
+            btn.onclick = () => handleAction(currentGroup.headerButton.action); 
+            groupHeaderButtonArea.appendChild(btn);
+        }
     }
 
     function renderTabs() {
+        console.log("appData object:", appData);
+        console.log("appData.groups:", appData.groups);
+        console.log("Type of appData.groups:", typeof appData.groups);
+        console.log("Number of groups in appData:", appData.groups ? appData.groups.length : 'groups is null/undefined');
         const nav = document.getElementById('tabBar');
         nav.innerHTML = '';
         
         appData.groups.forEach(group => {
             const div = document.createElement('div');
             div.className = `tab ${group.id === activeGroupId ? 'active' : ''}`;
+            div.dataset.groupId = group.id; // グループIDをデータ属性として保持
+            div.dataset.editable = group.editable; // editable状態をデータ属性として保持
             div.onclick = () => {
                 activeGroupId = group.id;
+                saveData(); // Save active group
+                renderHeader(); // Update header (for group specific buttons)
                 renderTabs();
                 renderMain();
             };
+            // Font Awesomeアイコンとタイトル表示
             div.innerHTML = `<i class="fas ${group.icon}"></i><span>${group.title}</span>`;
             nav.appendChild(div);
         });
@@ -406,17 +1296,26 @@
         const currentGroup = appData.groups.find(g => g.id === activeGroupId);
         if(!currentGroup) return;
 
-        // Subgroups
+        // グループコンテナに editable 属性を追加
+        const groupContainer = document.createElement('div');
+        groupContainer.className = 'group-content';
+        groupContainer.dataset.groupId = currentGroup.id;
+        groupContainer.dataset.editable = currentGroup.editable;
+        container.appendChild(groupContainer);
+
+
         const sgList = document.createElement('div');
-        sgList.id = 'subgroupList';
+        sgList.id = 'subgroupList'; // SortableJSで使用
+        groupContainer.appendChild(sgList); // groupContainerの子要素として追加
         
         currentGroup.subgroups.forEach((sg, index) => {
-            const sgEl = document.createElement('div');
-            sgEl.className = `subgroup color-${index % 5}`;
-            sgEl.dataset.id = sg.id;
+            if (sg.hidden) return; // hiddenプロパティがあればスキップ
 
-            // Subgroup Header
-            const headerHTML = `
+            const sgEl = document.createElement('div');
+            sgEl.className = `subgroup color-${sg.colorIndex !== undefined ? sg.colorIndex : index % 5}`;
+            sgEl.dataset.sgId = sg.id;
+
+            let headerHTML = `
                 <div class="subgroup-header">
                     <i class="fas fa-bars drag-handle"></i>
                     ${sg.title}
@@ -432,15 +1331,73 @@
             itemsContainer.dataset.sgId = sg.id;
 
             sg.items.forEach(item => {
-                const itemEl = document.createElement('div');
-                itemEl.className = `check-item ${item.isChecked ? 'completed' : ''}`;
-                itemEl.dataset.id = item.id;
-                
-                let btnHTML = '';
-                if(item.action && item.action.val) {
-                    const btnClass = item.action.type === 'shortcut' ? 'shortcut' : 'url';
-                    btnHTML = `<a href="${item.action.val}" class="action-btn ${btnClass}" target="_blank">${item.action.label || 'Go'}</a>`;
+                if (item.type === "categoryHeader") {
+                    const headerEl = document.createElement('div');
+                    headerEl.className = 'category-header';
+                    headerEl.innerText = item.title;
+                    itemsContainer.appendChild(headerEl);
+                    return;
                 }
+
+                // dynamic条件のチェック
+                if (item.dynamic) {
+                    const now = new Date();
+                    const dayOfWeek = now.getDay();
+                    const weekNum = Math.ceil(now.getDate() / 7);
+
+                    let shouldDisplay = true;
+                    if (item.dynamic.dayOfWeek !== undefined && item.dynamic.dayOfWeek !== dayOfWeek) {
+                        shouldDisplay = false;
+                    }
+                    if (item.dynamic.weekNum && !item.dynamic.weekNum.includes(weekNum)) {
+                        shouldDisplay = false;
+                    }
+                    if (!shouldDisplay) {
+                        return; // 条件を満たさない場合は表示しない
+                    }
+                }
+
+                const itemEl = document.createElement('div');
+                itemEl.className = `check-item ${item.isChecked ? 'completed' : ''} ${item.healthTooltip ? 'health-item' : ''}`;
+                itemEl.dataset.itemId = item.id;
+                itemEl.dataset.sgId = sg.id; // 親サブグループIDも保持
+
+                // healthTooltipのdata属性を設定
+                if (item.healthTooltip) {
+                    Object.keys(item.healthTooltip).forEach(key => {
+                        itemEl.dataset[key] = item.healthTooltip[key];
+                    });
+                }
+                
+                let actionButtonHTML = '';
+                if(item.action && !isEditing) { // 編集モード時はアクションボタンを非表示
+                    if (item.action.type === 'mixed') {
+                        actionButtonHTML += `<div class="action-btn-mixed">`;
+                        item.action.val.forEach(mixedAction => {
+                            actionButtonHTML += `<button class="action-btn ${mixedAction.type}" onclick="handleAction({ type: '${mixedAction.type}', val: \`${mixedAction.val}\`, label: \`${mixedAction.label}\` })">`;
+                            if (mixedAction.icon) {
+                                actionButtonHTML += `<img src="${mixedAction.icon}" alt="${mixedAction.label}">`;
+                            }
+                            actionButtonHTML += `${mixedAction.label}</button>`;
+                        });
+                        actionButtonHTML += `</div>`;
+                    } else if (item.action.type === 'image') { // Special handling for image-only buttons
+                        actionButtonHTML += `<button class="action-btn image" onclick="handleAction({ type: '${item.action.type}', val: \`${item.action.val}\`, label: \`${item.action.label}\` })">`;
+                        if (item.action.icon) {
+                            actionButtonHTML += `<img src="${item.action.icon}" alt="${item.action.label}">`;
+                        }
+                        actionButtonHTML += `</button>`;
+                    }
+                    else {
+                        actionButtonHTML += `<button class="action-btn ${item.action.type}" onclick="handleAction({ type: '${item.action.type}', val: \`${item.action.val}\`, label: \`${item.action.label}\` })">`;
+                        if (item.action.icon) {
+                            actionButtonHTML += `<img src="${item.action.icon}" alt="${item.action.label}">`;
+                        }
+                        actionButtonHTML += `${item.action.label}</button>`;
+                    }
+                }
+                // Handle image icons for item title
+                const itemIconHtml = item.icon ? (item.icon.startsWith('IMG/') ? `<img src="${item.icon}" alt="${item.title}" style="height: 1.2em; vertical-align: middle;">` : item.icon) : '';
 
                 itemEl.innerHTML = `
                     <div class="check-left" onclick="toggleCheck('${sg.id}', '${item.id}')">
@@ -449,13 +1406,16 @@
                             ${item.isChecked ? '<i class="fas fa-check"></i>' : ''}
                         </div>
                         <div class="item-title">
-                            ${item.icon} ${item.title}
+                            ${itemIconHtml} ${item.title}
                         </div>
                     </div>
-                    <div class="edit-controls">
-                        <i class="fas fa-trash delete-btn" onclick="deleteItem('${sg.id}', '${item.id}')"></i>
+                    <div class="item-right-controls">
+                        <div class="edit-controls">
+                            <i class="fas fa-edit edit-btn" onclick="openItemEditModal('${sg.id}', '${item.id}')"></i>
+                            <i class="fas fa-trash delete-btn" onclick="deleteItem('${sg.id}', '${item.id}')"></i>
+                        </div>
+                        ${actionButtonHTML}
                     </div>
-                    ${!isEditing ? btnHTML : ''}
                 `;
                 itemsContainer.appendChild(itemEl);
             });
@@ -464,15 +1424,13 @@
             const addBtn = document.createElement('div');
             addBtn.className = 'add-item-area';
             addBtn.innerText = '+ 項目を追加';
-            addBtn.onclick = () => addItem(sg.id);
+            addBtn.onclick = () => openItemEditModal(sg.id);
             
-            sgEl.innerHTML = headerHTML;
+            sgEl.innerHTML += headerHTML; // Append header HTML correctly
             sgEl.appendChild(itemsContainer);
             sgEl.appendChild(addBtn);
             sgList.appendChild(sgEl);
         });
-
-        container.appendChild(sgList);
 
         // Group Add Subgroup (Editing mode)
         const addSgBtn = document.createElement('div');
@@ -480,41 +1438,102 @@
         addSgBtn.style.marginBottom = '20px';
         addSgBtn.innerText = '+ サブグループを追加';
         addSgBtn.onclick = () => addSubgroup();
-        if(isEditing) container.appendChild(addSgBtn);
+        groupContainer.appendChild(addSgBtn); // groupContainerの子要素として追加
+        
+        // 「全チェックリセット」ボタン
+        const allResetButton = document.createElement('button');
+        allResetButton.className = 'reset-button';
+        allResetButton.innerText = '全チェックリセット';
+        allResetButton.onclick = allReset;
+        groupContainer.appendChild(allResetButton);
 
-        // Apply SortableJS
-        if(isEditing) {
-            // Sort Subgroups
+
+        // SortableJSの適用
+        if(isEditing && currentGroup.editable) { // グループがeditableの場合のみSortableを適用
+            // サブグループの並び替え
             new Sortable(sgList, {
                 handle: '.drag-handle',
                 animation: 150,
                 onEnd: function (evt) {
-                    // Reorder logic here (Updating appData array)
-                    const item = currentGroup.subgroups.splice(evt.oldIndex, 1)[0];
-                    currentGroup.subgroups.splice(evt.newIndex, 0, item);
-                    saveData();
+                    const sgId = evt.item.dataset.sgId; // Get sgId from the dragged item
+                    const sgIndex = currentGroup.subgroups.findIndex(sg => sg.id === sgId);
+                    if (sgIndex !== -1) {
+                        const [item] = currentGroup.subgroups.splice(sgIndex, 1);
+                        currentGroup.subgroups.splice(evt.newIndex, 0, item);
+                        saveData();
+                        renderMain(); // 変更を反映
+                    }
                 }
             });
 
-            // Sort Items inside Subgroups
+            // 各サブグループ内の項目の並び替え
             document.querySelectorAll('.items-container').forEach(el => {
-                new Sortable(el, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    group: 'items', // allow drag between subgroups
-                    onEnd: function (evt) {
-                        // Complex reorder logic needed for real app
-                        // For prototype: reload to reset or implement full logic
-                    }
-                });
+                const sgId = el.dataset.sgId;
+                const sg = currentGroup.subgroups.find(s => s.id === sgId);
+
+                if (sg && sg.items.some(item => item.type !== 'categoryHeader')) { // Only enable sortable if there are actual items (not just headers)
+                    new Sortable(el, {
+                        handle: '.drag-handle',
+                        animation: 150,
+                        group: 'items', // グループ内で並び替え
+                        filter: '.category-header', // カテゴリヘッダーはドラッグ対象外
+                        onEnd: function (evt) {
+                            const sgId = evt.from.dataset.sgId;
+                            const sg = currentGroup.subgroups.find(s => s.id === sgId);
+                            if (!sg) return;
+
+                            // Filter out category headers before moving
+                            const actualItems = sg.items.filter(item => item.type !== 'categoryHeader');
+                            const categoryHeaders = sg.items.filter(item => item.type === 'categoryHeader');
+
+                            const movedItem = actualItems.splice(evt.oldIndex, 1)[0];
+                            actualItems.splice(evt.newIndex, 0, movedItem);
+
+                            // Reinsert category headers into their original relative positions or just at the top
+                            const newItems = [];
+                            let itemIdx = 0;
+                            for (let i = 0; i < sg.items.length; i++) {
+                                if (sg.items[i].type === 'categoryHeader') {
+                                    newItems.push(sg.items[i]);
+                                } else {
+                                    if (itemIdx < actualItems.length) {
+                                        newItems.push(actualItems[itemIdx]);
+                                        itemIdx++;
+                                    }
+                                }
+                            }
+                            sg.items = newItems;
+                            saveData();
+                            renderMain(); // 変更を反映
+                        }
+                    });
+                }
             });
         }
+        setupHealthTooltips(); // renderMain後にツールチップを初期化
     }
 
     // --- Actions ---
 
+    function handleAction(action) {
+        if (!action || !action.type || !action.val) return;
+
+        if (action.type === 'shortcut') {
+            runShortcut(action.val);
+        } else if (action.type === 'url') {
+            openLink(action.val);
+        } else if (action.type === 'modal') {
+            openModal(action.val);
+        } else if (action.type === 'function') {
+            if (typeof window[action.val] === 'function') {
+                window[action.val]();
+            }
+        }
+        // mixedタイプはrenderMainで個別に処理されるため、ここには到達しない想定
+    }
+
     function toggleCheck(sgId, itemId) {
-        if(isEditing) return;
+        if(isEditing) return; // 編集モード時はチェック不可
         const group = appData.groups.find(g => g.id === activeGroupId);
         const sg = group.subgroups.find(s => s.id === sgId);
         const item = sg.items.find(i => i.id === itemId);
@@ -528,31 +1547,217 @@
         isEditing = !isEditing;
         document.body.classList.toggle('editing', isEditing);
         document.getElementById('editStatus').innerText = isEditing ? "編集中" : "";
-        renderMain(); // Re-render to show/hide controls
+        
+        if (isEditing) {
+            renderSettingsModal(); // 設定モーダルを開く前にレンダリング
+            openModal('settingsModal');
+        } else {
+            closeModal('settingsModal');
+            // Re-render main content to hide edit controls and re-enable check
+            renderMain(); 
+        }
     }
+
+    // --- Settings Functions ---
+    function renderSettingsModal() {
+        const companyDaysEditDiv = document.getElementById('companyDaysEdit');
+        companyDaysEditDiv.innerHTML = ''; // クリア
+        const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+
+        daysOfWeek.forEach((day, index) => {
+            const label = document.createElement('label');
+            label.style.display = 'flex';
+            label.style.flexDirection = 'column';
+            label.style.alignItems = 'center';
+            label.style.cursor = 'pointer';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = index;
+            checkbox.checked = appData.appSettings.companyDays.includes(index);
+            checkbox.id = `companyDay-${index}`;
+            checkbox.style.transform = 'scale(1.5)';
+            checkbox.style.marginBottom = '5px';
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(day));
+            companyDaysEditDiv.appendChild(label);
+        });
+
+        // marqueeMessagesEdit に現在のメッセージを表示
+        document.getElementById('marqueeMessagesEdit').value = appData.appSettings.marqueeMessages.join('\n');
+    }
+
+    function saveSettings() {
+        // companyDaysの保存
+        const companyDaysCheckboxes = document.querySelectorAll('#companyDaysEdit input[type="checkbox"]');
+        appData.appSettings.companyDays = Array.from(companyDaysCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => parseInt(cb.value));
+        
+        // marqueeMessagesの保存
+        const marqueeMessagesTextarea = document.getElementById('marqueeMessagesEdit');
+        appData.appSettings.marqueeMessages = marqueeMessagesTextarea.value
+            .split('\n')
+            .map(msg => msg.trim())
+            .filter(msg => msg !== ''); // 空行は除外
+
+        saveData();
+        renderHeader(); // ヘッダーを更新して出社日バッジとマーキーメッセージを反映
+        closeModal('settingsModal');
+    }
+
+    function addMarqueeMessage() {
+        const marqueeMessagesTextarea = document.getElementById('marqueeMessagesEdit');
+        const newMessage = prompt("新しいメッセージを入力してください:");
+        if (newMessage && newMessage.trim() !== '') {
+            if (marqueeMessagesTextarea.value.trim() !== '') {
+                marqueeMessagesTextarea.value += '\n';
+            }
+            marqueeMessagesTextarea.value += newMessage.trim();
+        }
+    }
+
+    function removeMarqueeMessage() {
+        const marqueeMessagesTextarea = document.getElementById('marqueeMessagesEdit');
+        const messages = marqueeMessagesTextarea.value.split('\n').map(msg => msg.trim()).filter(msg => msg !== '');
+        
+        if (messages.length === 0) {
+            alert("削除するメッセージがありません。");
+            return;
+        }
+
+        const messageToDelete = prompt("削除したいメッセージを正確に入力してください（部分一致では削除されません）:", messages[messages.length - 1]);
+        if (messageToDelete) {
+            const filteredMessages = messages.filter(msg => msg !== messageToDelete.trim());
+            marqueeMessagesTextarea.value = filteredMessages.join('\n');
+        }
+    }
+
 
     // --- CRUD (Simplified for Prototype) ---
 
-    function addItem(sgId) {
-        const title = prompt("項目名を入力してください");
-        if(!title) return;
-        const group = appData.groups.find(g => g.id === activeGroupId);
-        const sg = group.subgroups.find(s => s.id === sgId);
-        
-        sg.items.push({
-            id: 'it_' + Date.now(),
-            title: title,
-            icon: "🔹", 
-            isChecked: false,
-            action: null // In real app, open modal to set link
-        });
-        saveData();
-        renderMain();
+    // 項目追加・編集モーダルを開く
+    function openItemEditModal(sgId, itemId = null) {
+        currentItemForEdit = { sgId: sgId, itemId: itemId };
+        const itemEditModal = document.getElementById('itemEditModal');
+        const editItemTitle = document.getElementById('editItemTitle');
+        const editItemIcon = document.getElementById('editItemIcon');
+        const editItemActionType = document.getElementById('editItemActionType');
+        const editItemActionValGroup = document.getElementById('editItemActionValGroup');
+        const editItemActionVal = document.getElementById('editItemActionVal');
+        const editItemActionLabelGroup = document.getElementById('editItemActionLabelGroup');
+        const editItemActionLabel = document.getElementById('editItemActionLabel');
+        const editItemActionIconGroup = document.getElementById('editItemActionIconGroup');
+        const editItemActionIcon = document.getElementById('editItemActionIcon');
+
+        // アクション関連の表示制御
+        const toggleActionFields = () => {
+            const selectedType = editItemActionType.value;
+            if (selectedType === 'none') {
+                editItemActionValGroup.style.display = 'none';
+                editItemActionLabelGroup.style.display = 'none';
+                editItemActionIconGroup.style.display = 'none';
+            } else {
+                editItemActionValGroup.style.display = 'block';
+                editItemActionLabelGroup.style.display = 'block';
+                editItemActionIconGroup.style.display = 'block';
+            }
+        };
+        editItemActionType.onchange = toggleActionFields;
+
+        if (itemId) { // 既存項目編集
+            const group = appData.groups.find(g => g.id === activeGroupId);
+            const sg = group.subgroups.find(s => s.id === sgId);
+            const item = sg.items.find(i => i.id === itemId);
+
+            editItemTitle.value = item.title;
+            editItemIcon.value = item.icon || '';
+            if (item.action) {
+                editItemActionType.value = item.action.type;
+                editItemActionVal.value = typeof item.action.val === 'string' ? item.action.val : JSON.stringify(item.action.val); // Handle mixed action type
+                editItemActionLabel.value = item.action.label || '';
+                editItemActionIcon.value = item.action.icon || '';
+            } else {
+                editItemActionType.value = 'none';
+                editItemActionVal.value = '';
+                editItemActionLabel.value = '';
+                editItemActionIcon.value = '';
+            }
+        } else { // 新規項目追加
+            editItemTitle.value = '';
+            editItemIcon.value = '';
+            editItemActionType.value = 'none';
+            editItemActionVal.value = '';
+            editItemActionLabel.value = '';
+            editItemActionIcon.value = '';
+        }
+
+        toggleActionFields(); // 初期表示
+
+        openModal('itemEditModal');
     }
 
-    function deleteItem(sgId, itemId) {
-        if(!confirm("削除しますか？")) return;
+    // 項目編集内容を保存
+    function saveEditedItem() {
+        const { sgId, itemId } = currentItemForEdit;
         const group = appData.groups.find(g => g.id === activeGroupId);
+        const sg = group.subgroups.find(s => s.id === sgId);
+
+        const title = document.getElementById('editItemTitle').value;
+        const icon = document.getElementById('editItemIcon').value || null;
+        const actionType = document.getElementById('editItemActionType').value;
+        const actionValRaw = document.getElementById('editItemActionVal').value;
+        const actionLabel = document.getElementById('editItemActionLabel').value;
+        const actionIcon = document.getElementById('editItemActionIcon').value || null;
+
+        let action = null;
+        if (actionType !== 'none') {
+            let actionVal = actionValRaw;
+            if (actionType === 'mixed') {
+                try {
+                    actionVal = JSON.parse(actionValRaw);
+                } catch (e) {
+                    alert('Mixedアクションの値はJSON形式で入力してください。');
+                    return;
+                }
+            }
+            action = { type: actionType, val: actionVal, label: actionLabel, icon: actionIcon };
+        }
+
+        if (itemId) { // 既存項目を更新
+            const item = sg.items.find(i => i.id === itemId);
+            item.title = title;
+            item.icon = icon;
+            item.action = action;
+        } else { // 新規項目を追加
+            // Ensure unique ID for new item
+            let newItemId = 'it_' + Date.now();
+            while(sg.items.some(item => item.id === newItemId)) {
+                newItemId = 'it_' + Date.now() + Math.floor(Math.random() * 100);
+            }
+            sg.items.push({
+                id: newItemId,
+                title: title,
+                icon: icon,
+                isChecked: false,
+                action: action
+            });
+        }
+        saveData();
+        renderMain();
+        closeModal('itemEditModal');
+    }
+
+
+    function deleteItem(sgId, itemId) {
+        if(!confirm("項目を削除しますか？")) return;
+        const group = appData.groups.find(g => g.id === activeGroupId);
+        if (!group || !group.editable) { // 固定グループの項目は削除不可
+            alert("このグループの項目は削除できません。");
+            return;
+        }
+
         const sg = group.subgroups.find(s => s.id === sgId);
         sg.items = sg.items.filter(i => i.id !== itemId);
         saveData();
@@ -560,13 +1765,21 @@
     }
 
     function addSubgroup() {
-        const title = prompt("サブグループ名を入力");
+        const currentGroup = appData.groups.find(g => g.id === activeGroupId);
+        if (!currentGroup || !currentGroup.editable) { // 固定グループにはサブグループ追加不可
+            alert("このグループにはサブグループを追加できません。");
+            return;
+        }
+
+        const title = prompt("サブグループ名を入力してください");
         if(!title) return;
-        const group = appData.groups.find(g => g.id === activeGroupId);
-        group.subgroups.push({
+        
+        const newColorIndex = currentGroup.subgroups.length % 5; // 自動配色
+        currentGroup.subgroups.push({
             id: 'sg_' + Date.now(),
             title: title,
-            items: []
+            items: [],
+            colorIndex: newColorIndex
         });
         saveData();
         renderMain();
@@ -574,15 +1787,238 @@
 
     function deleteSubgroup(sgId) {
         if(!confirm("サブグループごと削除しますか？")) return;
-        const group = appData.groups.find(g => g.id === activeGroupId);
-        group.subgroups = group.subgroups.filter(s => s.id !== sgId);
+        const currentGroup = appData.groups.find(g => g.id === activeGroupId);
+        if (!currentGroup || !currentGroup.editable) { // 固定グループのサブグループは削除不可
+            alert("このグループのサブグループは削除できません。");
+            return;
+        }
+
+        currentGroup.subgroups = currentGroup.subgroups.filter(s => s.id !== sgId);
         saveData();
         renderMain();
     }
 
-    // --- Boot ---
-    init();
+    // --- Modal Functions (checklist_daily/index.htmlから統合) ---
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    function submitAIPlan() {
+        const start = document.getElementById('startTime').value;
+        const end = document.getElementById('endTime').value;
+        const place = document.getElementById('placeSelect').value;
+        const transport = document.getElementById('transportSelect').value;
+        const facility = document.getElementById('facilityCount').value;
+        const plans = document.getElementById('planCount').value;
+        const env = document.getElementById('envSelect').value;
+        const free = document.getElementById('freeText').value;
+
+        const prompt = `[システム命令: Pro Search機能を強制ONにして、ウェブ検索を駆使してください]千葉市美浜区打瀬を出発地点として、家族三人(夫婦、2021年生まれ女の子)が楽しめるおでかけ計画を立てて下さい。以下の条件（季節、気温、日本の風習を考慮）を元に、最新情報をリサーチして【${plans}個】のプランを出力してください。#出力形式:・必ずマークダウンの【テーブル形式】（時刻、内容、費用）で出力。・プラン毎に必ず【費用合計】を表示。・カーシェア費用は「1日5,000円」として計算。#リサーチ指示:・2026年現在の営業時間、利用料金、最新イベントをウェブ検索。・季節・気温・日本の風習（祝日や行事）を考慮した内容にする。・打瀬からの正確な移動ルート/時間をリサーチ。・ランチは目的地から徒歩5分以内、かつ子連れ歓迎の店を特定。#制約条件:・出発地：千葉市美浜区打瀬・ランチ時間：10:30〜11:00・めぐる施設数：${facility}・移動手段：${transport}#入力データ:出発：${start}、帰宅：${end}、場所：${place}、環境：${env}、備考：${free}出力：【結論(テーブル)】【費用合計】【リサーチ根拠】【注意点】【出典】`;
+        window.open("https://www.perplexity.ai/search?q=" + encodeURIComponent(prompt) + "&copilot=1", '_blank');
+        closeModal('aiModal');
+    }
+
+    function submitTravelPlan() {
+        const holiday = document.getElementById('trHoliday').value;
+        const stay = document.getElementById('trStay').value;
+        const place = document.getElementById('trPlace').value;
+        const transport = document.getElementById('trTransport').value;
+        const facility = document.getElementById('trFacility').value;
+        const plans = document.getElementById('trPlans').value;
+        const env = document.getElementById('trEnv').value;
+        const free = document.getElementById('trFree').value;
+
+        const prompt = `[Pro Search機能ON]千葉市美浜区打瀬を出発地点として、家族三人(夫婦、2021年生まれ女の子)向けの旅行計画を${plans}個提案してください。日程は【${holiday}】を前提とし、期間は${stay}とします。目的地は${place}、テーマは${env}、移動手段は${transport}、1日${facility}施設を巡る想定で、費用概算も含めてテーブル形式で出力してください。備考：${free}`;
+        window.open("https://www.perplexity.ai/search?q=" + encodeURIComponent(prompt) + "&copilot=1", '_blank');
+        closeModal('travelModal');
+    }
+
+    function calcHours() { // btn引数を削除
+        // 呼び出し元がイベントリスナーの場合はeventオブジェクトが渡されるが、ここでは直接呼び出す想定
+        // 必要であれば、イベントターゲットを特定してinnerTextを更新するロジックを追加
+        const now = new Date();
+        let target = new Date();
+        target.setHours(6, 0, 0, 0);
+        if (now.getHours() >= 6) {
+            target.setDate(now.getDate() + 1);
+        }
+        const diffMs = target - now;
+        const diffHrs = (diffMs / (1000 * 60 * 60)).toFixed(1);
+        alert(`${diffHrs}h後`); // ボタンのinnerTextではなくアラートで表示（仮）
+    }
+
+    function runShortcut(name) { window.location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent(name); }
+    function openLink(url) { window.open(url, '_blank'); }
+
+    function allReset() {
+        if(confirm('全てのチェック状態と設定をリセットしますか？この操作は元に戻せません。')) {
+            localStorage.removeItem('myChecklistApp');
+            localStorage.removeItem('activeGroupId');
+            location.reload(); // リロードして初期状態に戻す
+        }
+    }
+
+
+    // --- Health Tooltip Logic (checklist_daily/index.htmlから統合・調整) ---
+    function setupHealthTooltips() {
+        // Create tooltip element if it doesn't exist
+        let tooltip = document.getElementById('health-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'health-tooltip';
+            tooltip.className = 'health-tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        // 既存のイベントリスナーを削除してから再追加することで、重複登録を防ぐ
+        // renderMainが毎回DOMを再生成するため、既存リスナーを削除する必要はない
+        // ただし、もしDOMが再生成されない場合は、removeEventListenerを考慮する必要がある
+
+        document.querySelectorAll('.health-item').forEach(item => {
+            // Check if event listener already added to prevent duplicates on re-render
+            if (item.dataset.hasTooltipListener) {
+                return;
+            }
+            item.dataset.hasTooltipListener = 'true'; // Mark as having listener
+
+            item.addEventListener('click', function(event) {
+                // チェックボックス自体がクリックされた場合はツールチップを表示しない
+                if (event.target.type === 'checkbox' || event.target.closest('.checkbox')) {
+                    return;
+                }
+                event.stopPropagation(); // 親要素へのイベント伝播を停止
+
+                let tooltipContent = '';
+                
+                // data-partX-title と data-partX-text からコンテンツを動的に構築
+                for (let i = 1; i <= 3; i++) { // 最大3パートを想定
+                    const title = this.dataset[`part${i}Title`];
+                    const text = this.dataset[`part${i}Text`];
+                    if (title && text) {
+                        tooltipContent += `
+                            <div class="health-tooltip-section">
+                                <strong>${title}</strong>
+                                <p>${text}</p>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // 同じ項目がクリックされ、ツールチップが表示中の場合は非表示にする
+                if (tooltip.style.display === 'block' && tooltip.dataset.currentItemId === this.dataset.itemId) {
+                    tooltip.style.display = 'none';
+                    return;
+                }
+
+                tooltip.innerHTML = tooltipContent;
+
+                const rect = this.getBoundingClientRect();
+                tooltip.style.display = 'block';
+                
+                // 最適な位置を計算
+                let finalLeft = rect.left;
+                let finalTop = rect.bottom + 5; // デフォルト位置: 項目の下
+
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const tooltipRect = tooltip.getBoundingClientRect(); // コンテンツセット後のツールチップの寸法を取得
+
+                // 水平方向の調整
+                if (finalLeft + tooltipRect.width > viewportWidth - 10) {
+                    finalLeft = viewportWidth - tooltipRect.width - 10;
+                }
+                if (finalLeft < 10) { // 左端で見切れないように
+                    finalLeft = 10;
+                }
+
+                // 垂直方向の調整（上部に表示するか、下部に表示するか）
+                const spaceBelow = viewportHeight - (rect.bottom + 5);
+                const spaceAbove = rect.top - tooltipRect.height - 5;
+                
+                if (spaceBelow < tooltipRect.height && spaceAbove > 0) {
+                    // 下部に十分なスペースがなく、上部に十分なスペースがある場合、上部に反転
+                    finalTop = rect.top - tooltipRect.height - 5;
+                } else if (finalTop + tooltipRect.height > viewportHeight - 10) {
+                    // 下部にまだ見切れる場合、ビューポートの下端に合わせる
+                    finalTop = viewportHeight - tooltipRect.height - 10;
+                }
+                if (finalTop < 10) { // 上端で見切れないように
+                    finalTop = 10;
+                }
+
+                tooltip.style.left = `${finalLeft}px`;
+                tooltip.style.top = `${finalTop}px`;
+                
+                tooltip.dataset.currentItemId = this.dataset.itemId;
+            });
+        });
+
+        // ツールチップを外側クリックで非表示
+        document.addEventListener('click', function(event) {
+            if (tooltip && tooltip.style.display === 'block') {
+                if (!tooltip.contains(event.target) && !event.target.closest('.health-item') && !event.target.closest('.settings-btn')) {
+                    tooltip.style.display = 'none';
+                }
+            }
+        });
+    }
+
+
+    // --- Swipe Functionality ---
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    const mainContent = document.getElementById('mainContent');
+
+    mainContent.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        // Prevent scrolling if drag-and-drop is active (editing mode)
+        if (isEditing) {
+            e.preventDefault(); 
+        }
+    });
+
+    mainContent.addEventListener('touchmove', e => {
+        touchEndX = e.touches[0].clientX;
+    });
+
+    mainContent.addEventListener('touchend', () => {
+        if (isEditing) { // Disable swipe if in editing mode
+            touchStartX = 0;
+            touchEndX = 0;
+            return;
+        }
+
+        if (touchStartX === 0 || touchEndX === 0) return;
+
+        const threshold = 50; // スワイプと判定する最小距離
+        const deltaX = touchEndX - touchStartX;
+
+        if (Math.abs(deltaX) > threshold) {
+            const currentGroupIndex = appData.groups.findIndex(g => g.id === activeGroupId);
+            let newGroupIndex = -1;
+
+            if (deltaX > 0) { // 右スワイプ (前のタブへ)
+                newGroupIndex = currentGroupIndex - 1;
+            } else { // 左スワイプ (次のタブへ)
+                newGroupIndex = currentGroupIndex + 1;
+            }
+
+            if (newGroupIndex >= 0 && newGroupIndex < appData.groups.length) {
+                activeGroupId = appData.groups[newGroupIndex].id;
+                saveData(); // Save active group
+                renderHeader(); // Update header (for group specific buttons)
+                renderTabs();
+                renderMain();
+            }
+        }
+
+        // リセット
+        touchStartX = 0;
+        touchEndX = 0;
+    });
+
+    // --- Boot ---
+    document.addEventListener('DOMContentLoaded', init); // Use DOMContentLoaded for initial setup
 </script>
 </body>
 </html>
