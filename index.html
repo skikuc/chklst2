@@ -64,7 +64,7 @@
             position: relative;
         }
         
-        .date-display { font-size: 2.4rem; font-weight: bold; }
+        .date-display { font-size: 0.96rem; font-weight: bold; }
         .month-display {
             font-size: 0.9rem;
             color: var(--text-sub);
@@ -72,7 +72,7 @@
         }
         .day-display {
             color: #FF69B4; /* Vivid pink */
-            font-size: 2.4rem;
+            font-size: 0.96rem;
         }
         .company-day-badge {
             margin-left: 10px;
@@ -1695,9 +1695,22 @@
 
     function showMeetingsModal() {
         const now = new Date();
-        const dayIdx = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-        const meetingsToday = appData.appSettings.meetingSchedule[dayIdx];
+        const dayIdx = now.getDay();
+
         const meetingsListEl = document.getElementById('meetingsList');
+        if (!meetingsListEl) {
+            openModal('meetingsModal'); // Still open the modal to show something
+            // Consider logging to console if in a debug environment, but for user-facing, just open.
+            return;
+        }
+
+        if (!appData || !appData.appSettings || !appData.appSettings.meetingSchedule) {
+            meetingsListEl.innerHTML = '<p>ミーティングスケジュールが読み込めません。設定を確認してください。</p>';
+            openModal('meetingsModal');
+            return;
+        }
+
+        const meetingsToday = appData.appSettings.meetingSchedule[dayIdx];
 
         if (meetingsToday && meetingsToday.length > 0) {
             meetingsListEl.innerHTML = meetingsToday.map(mtg => `<p>・ ${mtg}</p>`).join('');
