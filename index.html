@@ -310,6 +310,7 @@
         body.editing .edit-btn, body.editing .delete-btn {
             pointer-events: auto;
             opacity: 1; /* Ensure full visibility and clickability */
+            cursor: pointer; /* Explicitly add cursor pointer for iOS touch events */
         }
         body.editing .checkbox, body.editing .action-btn { pointer-events: none; opacity: 0.3; } /* 編集モード時はクリック無効化 */
 
