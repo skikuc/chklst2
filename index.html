@@ -27,6 +27,7 @@
             --danger: #FF3B30;
             --header-height: 120px;
             --footer-height: 80px;
+            --light-pink: #FFC0CB;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -63,7 +64,7 @@
             position: relative;
         }
         
-        .date-display { font-size: 1.2rem; font-weight: bold; }
+        .date-display { font-size: 2.4rem; font-weight: bold; }
         .month-display {
             font-size: 0.9rem;
             color: var(--text-sub);
@@ -71,6 +72,7 @@
         }
         .day-display {
             color: #FF69B4; /* Vivid pink */
+            font-size: 2.4rem;
         }
         .company-day-badge {
             margin-left: 10px;
@@ -99,6 +101,16 @@
             display: flex; /* 追加 */
             align-items: center; /* 追加 */
             gap: 5px; /* 追加 */
+        }
+        .mtg-button {
+            position: absolute;
+            right: 60px; /* Adjust this value to position it correctly relative to settings-btn */
+            font-size: 1.2rem;
+            color: var(--primary-color); /* Use primary color as a default */
+            cursor: pointer;
+            padding: 5px; /* Add some padding */
+            display: flex;
+            align-items: center;
         }
 
         #groupHeaderButtonArea { /* 追加 */
@@ -283,8 +295,8 @@
             cursor: pointer;
         }
         .tab i { font-size: 1.4rem; margin-bottom: 4px; }
-        .tab.active { color: var(--primary-color); }
-        .tab.red-tab { color: var(--danger); }
+        .tab.red-tab { color: var(--light-pink); }
+        .tab.active { color: #FF1493; }
         /* 固定タブの編集不可時のスタイル */
         .tab[data-editable="false"].editing { /* 編集モード時でも編集不可であることを示す */
             opacity: 0.6;
@@ -378,7 +390,7 @@
         }
 
         /* モーダル共通 (checklist_daily/index.htmlから統合) */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 92%; max-width: 400px; padding: 20px; border-radius: 24px; max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #555; }
@@ -401,6 +413,7 @@
             <div id="dateDisplay" class="date-display"></div>
             <!-- BNロゴまたはアイコン画像を表示するimgタグに置き換え -->
             <div id="companyBadge" class="company-day-badge"></div> 
+            <span id="mtgButton" class="mtg-button" onclick="showMeetingsModal()">MTG</span>
             <div class="settings-btn" onclick="toggleEditMode()">
                 <i class="fas fa-cog"></i> <span id="editStatus" style="font-size:0.8rem"></span>
             </div>
@@ -603,6 +616,18 @@
             </div>
         </div>
     </div>
+    <!-- ミーティングモーダル -->
+    <div class="modal-overlay" id="meetingsModal">
+        <div class="modal-content">
+            <h2 style="text-align:center; font-size:18px; color:var(--primary-color); margin-top:0;">今日のMTG</h2>
+            <div id="meetingsList" style="margin-top: 15px; font-size: 1rem; line-height: 1.6;">
+                <!-- Meeting details will be inserted here by JavaScript -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('meetingsModal')">閉じる</button>
+            </div>
+        </div>
+    </div>
 </div><!-- modalContainer end -->
 
 <script>
@@ -693,7 +718,16 @@
                 "伝えるなら「事実・感情・希望」で整える",
                 "末尾に「…と思っただけ」を付けてみる（妄想の識別）"
             ],
-            companyLogoPath: "IMG/BN.png"
+            companyLogoPath: "IMG/BN.png",
+            meetingSchedule: {
+                0: [], // Sunday
+                1: ["自社定例"], // Monday
+                2: ["３社全体定例", "先方すり合わせ", "自社PJリーダー定例"], // Tuesday
+                3: [], // Wednesday
+                4: ["DmFX定例"], // Thursday
+                5: ["３社FX定例"], // Friday
+                6: []  // Saturday
+            }
         },
         groups: [
             // g_daily (毎日)
@@ -1653,6 +1687,20 @@
             // Re-render main content to hide edit controls and re-enable check
             renderMain(); 
         }
+    }
+
+    function showMeetingsModal() {
+        const now = new Date();
+        const dayIdx = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+        const meetingsToday = appData.appSettings.meetingSchedule[dayIdx];
+        const meetingsListEl = document.getElementById('meetingsList');
+
+        if (meetingsToday && meetingsToday.length > 0) {
+            meetingsListEl.innerHTML = meetingsToday.map(mtg => `<p>・ ${mtg}</p>`).join('');
+        } else {
+            meetingsListEl.innerHTML = '<p>今日のMTGはありません。</p>';
+        }
+        openModal('meetingsModal');
     }
 
     // --- Settings Functions ---
