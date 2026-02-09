@@ -307,6 +307,10 @@
         /* --- Editing Mode UI --- */
         .edit-controls { display: none; margin-left: auto; }
         body.editing .edit-controls { display: flex; gap: 8px; }
+        body.editing .edit-btn, body.editing .delete-btn {
+            pointer-events: auto;
+            opacity: 1; /* Ensure full visibility and clickability */
+        }
         body.editing .checkbox, body.editing .action-btn { pointer-events: none; opacity: 0.3; } /* 編集モード時はクリック無効化 */
 
         /* 固定グループ内の編集コントロールを非表示にする */
