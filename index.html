@@ -64,21 +64,27 @@
         }
         
         .date-display { font-size: 1.2rem; font-weight: bold; }
+        .month-display {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            font-weight: normal;
+        }
+        .day-display {
+            color: #FF69B4; /* Vivid pink */
+        }
         .company-day-badge {
             margin-left: 10px;
             /* background: #E60012; BN Red style */
             /* color: white; */
-            font-size: 0.7rem;
+            font-size: 0.9rem;
             padding: 4px 8px;
             /* border-radius: 4px; */
             font-weight: bold;
-            display: none; /* JSで制御 */
             align-items: center; /* 画像とテキストの垂直方向の位置合わせ */
             justify-content: center;
         }
-        .company-day-badge.active { display: flex; } /* blockからflexに変更 */
         .company-day-badge img {
-            height: 24px; /* BNロゴの表示サイズ調整 */
+            height: 48px; /* BNロゴの表示サイズ調整 */
             vertical-align: middle;
             margin-right: 5px;
         }
@@ -1263,19 +1269,25 @@
         const days = ["日", "月", "火", "水", "木", "金", "土"];
         const dayIdx = now.getDay();
         
-        document.getElementById('dateDisplay').innerText = 
-            `${now.getMonth()+1}月${now.getDate()}日 (${days[dayIdx]})`;
+        const dateDisplayEl = document.getElementById('dateDisplay');
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const dayOfWeek = days[dayIdx];
+
+        // Wrap month in a span for separate styling
+        dateDisplayEl.innerHTML = 
+            `<span class="month-display">${month}月</span><span class="day-display">${date}日</span> (${dayOfWeek})`;
 
         // 出社日バッジ
-        const companyBadge = document.getElementById('companyBadge');
-        const companyLogoPath = appData.appSettings.companyLogoPath;
-        if (appData.appSettings.companyDays.includes(dayIdx)) {
-            companyBadge.classList.add('active');
-            companyBadge.innerHTML = `<img src="${companyLogoPath}" alt="BN Logo">`;
-        } else {
-            companyBadge.classList.remove('active');
-            companyBadge.innerHTML = '';
-        }
+                const companyBadge = document.getElementById('companyBadge');
+                const companyLogoPath = appData.appSettings.companyLogoPath;
+                if (appData.appSettings.companyDays.includes(dayIdx)) {
+                    companyBadge.style.display = 'flex'; // Explicitly set display to flex
+                    companyBadge.innerHTML = `<img src="${companyLogoPath}" alt="BN Logo">出社日`;
+                } else {
+                    companyBadge.style.display = 'none'; // Explicitly set display to none
+                    companyBadge.innerHTML = '';
+                }
 
         // Marquee Random Message
         const msgs = appData.appSettings.marqueeMessages;
