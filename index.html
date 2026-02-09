@@ -307,10 +307,32 @@
         /* --- Editing Mode UI --- */
         .edit-controls { display: none; margin-left: auto; }
         body.editing .edit-controls { display: flex; gap: 8px; pointer-events: auto; }
-        body.editing .edit-btn, body.editing .delete-btn {
+        body.editing .edit-btn, body.editing .delete-btn { /* This rule is now effectively deprecated by the new button wrappers, but keeping for broader context */
             pointer-events: auto;
             opacity: 1; /* Ensure full visibility and clickability */
             cursor: pointer; /* Explicitly add cursor pointer for iOS touch events */
+        }
+        /* New styles for icon buttons wrapping Font Awesome icons */
+        .edit-icon-btn, .delete-icon-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            color: inherit; /* Inherit color from parent .edit-controls */
+            font-size: 1.2rem; /* Match the icon size */
+            cursor: pointer;
+            pointer-events: auto; /* Ensure clickable */
+            display: flex; /* Align icon */
+            align-items: center;
+            justify-content: center;
+            width: 24px; /* Give a fixed size */
+            height: 24px; /* Give a fixed size */
+            margin: 0; /* Remove default button margin */
+        }
+        .delete-icon-btn {
+            color: var(--danger); /* Apply danger color to delete button */
+        }
+        body.editing .edit-icon-btn, body.editing .delete-icon-btn {
+             opacity: 1; /* Ensure full opacity in edit mode */
         }
         body.editing .checkbox, body.editing .action-btn { pointer-events: none; opacity: 0.3; } /* 編集モード時はクリック無効化 */
 
@@ -1538,8 +1560,12 @@
                     </div>
                     <div class="item-right-controls">
                         <div class="edit-controls">
-                            <i class="fas fa-edit edit-btn" onclick="openItemEditModal('${sg.id}', '${item.id}')"></i>
-                            <i class="fas fa-trash delete-btn" onclick="deleteItem('${sg.id}', '${item.id}')"></i>
+                            <button class="edit-icon-btn" onclick="openItemEditModal('${sg.id}', '${item.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-icon-btn" onclick="deleteItem('${sg.id}', '${item.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                         ${actionButtonHTML}
                     </div>
