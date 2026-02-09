@@ -278,6 +278,7 @@
         }
         .tab i { font-size: 1.4rem; margin-bottom: 4px; }
         .tab.active { color: var(--primary-color); }
+        .tab.red-tab { color: var(--danger); }
         /* 固定タブの編集不可時のスタイル */
         .tab[data-editable="false"].editing { /* 編集モード時でも編集不可であることを示す */
             opacity: 0.6;
@@ -1305,16 +1306,35 @@
     }
 
     function renderTabs() {
-        console.log("appData object:", appData);
-        console.log("appData.groups:", appData.groups);
-        console.log("Type of appData.groups:", typeof appData.groups);
-        console.log("Number of groups in appData:", appData.groups ? appData.groups.length : 'groups is null/undefined');
         const nav = document.getElementById('tabBar');
         nav.innerHTML = '';
         
+        const now = new Date();
+        const dayIdx = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+        const isCompanyDay = appData.appSettings.companyDays.includes(dayIdx);
+        
+        // Determine the dynamically red tab based on the day
+        let dynamicRedTabId = '';
+        if (dayIdx === 0 || dayIdx === 6) { // Sunday or Saturday (weekend)
+            dynamicRedTabId = 'g_holiday';
+        } else { // Weekday
+            if (isCompanyDay) { // Working day
+                dynamicRedTabId = 'g_work';
+            } else { // Non-working weekday (remote work)
+                dynamicRedTabId = 'g_home';
+            }
+        }
+
         appData.groups.forEach(group => {
             const div = document.createElement('div');
-            div.className = `tab ${group.id === activeGroupId ? 'active' : ''}`;
+            let classNames = `tab ${group.id === activeGroupId ? 'active' : ''}`;
+            
+            // Add 'red-tab' class based on conditions
+            if (group.id === 'g_daily' || group.id === 'g_family' || group.id === dynamicRedTabId) {
+                classNames += ' red-tab';
+            }
+
+            div.className = classNames;
             div.dataset.groupId = group.id; // グループIDをデータ属性として保持
             div.dataset.editable = group.editable; // editable状態をデータ属性として保持
             div.onclick = () => {
