@@ -1248,13 +1248,16 @@
 
         if (lastClearDate !== today) {
             appData.groups.forEach(group => {
-                group.subgroups.forEach(subgroup => {
-                    subgroup.items.forEach(item => {
-                        if (item.type !== "categoryHeader") { // カテゴリヘッダーはリセットしない
-                            item.isChecked = false;
-                        }
+                // Only reset groups that are not 'g_other'
+                if (group.id !== 'g_other') {
+                    group.subgroups.forEach(subgroup => {
+                        subgroup.items.forEach(item => {
+                            if (item.type !== "categoryHeader") { // カテゴリヘッダーはリセットしない
+                                item.isChecked = false;
+                            }
+                        });
                     });
-                });
+                }
             });
             appData.appSettings.lastVisitDate = today;
             saveData();
@@ -1531,6 +1534,15 @@
         allResetButton.innerText = '全チェックリセット';
         allResetButton.onclick = allReset;
         groupContainer.appendChild(allResetButton);
+
+        // 「その他」タブ専用のリセットボタン
+        if (activeGroupId === 'g_other') {
+            const otherResetButton = document.createElement('button');
+            otherResetButton.className = 'reset-button'; // Re-use existing button style
+            otherResetButton.innerText = 'その他タブをリセット';
+            otherResetButton.onclick = resetOtherTab;
+            groupContainer.appendChild(otherResetButton);
+        }
 
 
         // SortableJSの適用
@@ -1935,10 +1947,38 @@
     function openLink(url) { window.open(url, '_blank'); }
 
     function allReset() {
-        if(confirm('全てのチェック状態と設定をリセットしますか？この操作は元に戻せません。')) {
-            localStorage.removeItem('myChecklistApp');
-            localStorage.removeItem('activeGroupId');
-            location.reload(); // リロードして初期状態に戻す
+        if(confirm('「その他」タブを除く全てのチェック状態をリセットしますか？この操作は元に戻せません。')) {
+            appData.groups.forEach(group => {
+                // Only reset groups that are not 'g_other'
+                if (group.id !== 'g_other') {
+                    group.subgroups.forEach(subgroup => {
+                        subgroup.items.forEach(item => {
+                            if (item.type !== "categoryHeader") {
+                                item.isChecked = false;
+                            }
+                        });
+                    });
+                }
+            });
+            saveData();
+            location.reload();
+        }
+    }
+
+    function resetOtherTab() {
+        if(confirm('「その他」タブのチェック状態を全てリセットしますか？')) {
+            const otherGroup = appData.groups.find(g => g.id === 'g_other');
+            if (otherGroup) {
+                otherGroup.subgroups.forEach(subgroup => {
+                    subgroup.items.forEach(item => {
+                        if (item.type !== "categoryHeader") {
+                            item.isChecked = false;
+                        }
+                    });
+                });
+                saveData();
+                renderMain(); // Re-render the current tab to show changes
+            }
         }
     }
 
