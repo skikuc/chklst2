@@ -27,7 +27,7 @@
             --danger: #FF3B30;
             --header-height: 120px;
             --footer-height: 80px;
-            --light-pink: #FFC0CB;
+            --light-pink: #FF99CC;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -64,7 +64,7 @@
             position: relative;
         }
         
-        .date-display { font-size: 0.96rem; font-weight: bold; }
+        .date-display { font-size: 1.248rem; font-weight: bold; }
         .month-display {
             font-size: 0.9rem;
             color: var(--text-sub);
@@ -72,7 +72,7 @@
         }
         .day-display {
             color: #FF69B4; /* Vivid pink */
-            font-size: 0.96rem;
+            font-size: 1.248rem;
         }
         .company-day-badge {
             margin-left: 10px;
@@ -105,8 +105,8 @@
         .mtg-button {
             position: absolute;
             right: 60px; /* Adjust this value to position it correctly relative to settings-btn */
-            font-size: 1.2rem;
-            color: var(--primary-color); /* Use primary color as a default */
+            font-size: 1.4rem;
+            color: var(--text-sub); /* Use primary color as a default */
             cursor: pointer;
             padding: 5px; /* Add some padding */
             display: flex;
@@ -149,6 +149,7 @@
             margin-bottom: var(--footer-height);
             height: calc(100vh - var(--header-height) - var(--footer-height));
             overflow-y: auto;
+            overflow-x: hidden; /* Added to prevent horizontal swiping */
             padding: 20px;
             -webkit-overflow-scrolling: touch;
         }
@@ -296,7 +297,7 @@
         }
         .tab i { font-size: 1.4rem; margin-bottom: 4px; }
         .tab.red-tab { color: var(--light-pink); }
-        .tab.active { color: #FF1493; }
+        .tab.active { color: #FF007F; }
         /* 固定タブの編集不可時のスタイル */
         .tab[data-editable="false"].editing { /* 編集モード時でも編集不可であることを示す */
             opacity: 0.6;
@@ -440,7 +441,7 @@
             <div id="dateDisplay" class="date-display"></div>
             <!-- BNロゴまたはアイコン画像を表示するimgタグに置き換え -->
             <div id="companyBadge" class="company-day-badge"></div> 
-            <span id="mtgButton" class="mtg-button" onclick="showMeetingsModal()">MTG</span>
+            <span id="mtgButton" class="mtg-button" onclick="showMeetingsModal()"><i class="fas fa-comments"></i></span>
             <div class="settings-btn" onclick="toggleEditMode()">
                 <i class="fas fa-cog"></i> <span id="editStatus" style="font-size:0.8rem"></span>
             </div>
@@ -1560,10 +1561,10 @@
                     </div>
                     <div class="item-right-controls">
                         <div class="edit-controls">
-                            <button class="edit-icon-btn" onclick="openItemEditModal('${sg.id}', '${item.id}')">
+                            <button class="edit-icon-btn" onclick="openItemEditModal('${sg.id}', '${item.id}')" ontouchstart="openItemEditModal('${sg.id}', '${item.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="delete-icon-btn" onclick="deleteItem('${sg.id}', '${item.id}')">
+                            <button class="delete-icon-btn" onclick="deleteItem('${sg.id}', '${item.id}')" ontouchstart="deleteItem('${sg.id}', '${item.id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
