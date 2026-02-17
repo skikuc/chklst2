@@ -1364,7 +1364,8 @@
                             id: "sg_work_money_prep",
                             title: "退勤準備",
                             items: [
-                                { id: "w_money_kintai", title: "勤怠連絡", icon: null, isChecked: false, action: null }
+                                { id: "w_money_kintai", title: "勤怠連絡", icon: null, isChecked: false, action: null },
+                                { id: "w_leave_calc", title: "退勤時間算出", icon: "⏰", isChecked: false, action: { label: "算出", type: "function", val: "calcLeaveTime" } }
                             ],
                             colorIndex: 1
                         }
@@ -2370,6 +2371,16 @@
             const prompt = `[Pro Search機能ON]千葉市美浜区打瀬を出発地点として、家族三人(夫婦、2021年生まれ女の子)向けの旅行計画を${plans}個提案してください。日程は【${holiday}】を前提とし、期間は${stay}とします。目的地は${place}、テーマは${env}、移動手段は${transport}、1日${facility}施設を巡る想定で、費用概算も含めてテーブル形式で出力してください。備考：${free}`;
             window.open("https://www.perplexity.ai/search?q=" + encodeURIComponent(prompt) + "&copilot=1", '_blank');
             closeModal('travelModal');
+        }
+
+        function calcLeaveTime() {
+            const now = new Date();
+            const start = new Date(now.getTime() + 10 * 60000); // +10 min
+            const end = new Date(start.getTime() + 60 * 60000); // +1 hour
+
+            const format = (d) => d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+            const res = format(start) + '-' + format(end);
+            alert(res);
         }
 
         function calcHours() { // btn引数を削除
