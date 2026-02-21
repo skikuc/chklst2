@@ -1810,17 +1810,19 @@
                     div.className = classNames;
                     div.dataset.groupId = group.id; // グループIDをデータ属性として保持
                     div.dataset.editable = group.editable; // editable状態をデータ属性として保持
-                    div.onclick = () => {
-                        activeGroupId = group.id;
-                        saveData(); // Save active group
-                        renderHeader(); // Update header (for group specific buttons)
-                        renderTabs();
-                        renderMain();
-                    };
+                    div.onclick = () => switchTab(group.id);
                     // Font Awesomeアイコンとタイトル表示
                     div.innerHTML = `<i class="fas ${group.icon}"></i><span>${group.title}</span>`;
                     nav.appendChild(div);
                 });
+            }
+
+            function switchTab(groupId) {
+                activeGroupId = groupId;
+                saveData(); // Save active group
+                renderHeader(); // Update header (for group specific buttons)
+                renderTabs();
+                renderMain();
             }
 
             function renderMain() {
@@ -1840,6 +1842,52 @@
 
                 const sgList = document.createElement('div');
                 sgList.id = 'subgroupList'; // SortableJSで使用
+
+                // --- 毎日タブ用の動的ショートカットボタン ---
+                if (currentGroup.id === 'g_daily') {
+                    const now = new Date();
+                    const dayIdx = now.getDay();
+                    const isWeekend = (dayIdx === 0 || dayIdx === 6);
+                    const isCompanyDay = appData.appSettings.companyDays.includes(dayIdx);
+
+                    const shortcutArea = document.createElement('div');
+                    shortcutArea.style.display = 'flex';
+                    shortcutArea.style.flexDirection = 'column';
+                    shortcutArea.style.gap = '10px';
+                    shortcutArea.style.marginBottom = '20px';
+
+                    if (isWeekend) {
+                        const btn = document.createElement('button');
+                        btn.className = 'reset-button qr-button';
+                        btn.style.backgroundColor = '#FF9500'; // 休日っぽいオレンジ
+                        btn.innerHTML = '<i class="fas fa-campground"></i> 休日チェックへ';
+                        btn.onclick = () => switchTab('g_holiday');
+                        shortcutArea.appendChild(btn);
+                    } else if (isCompanyDay) {
+                        const btn = document.createElement('button');
+                        btn.className = 'reset-button qr-button';
+                        btn.style.backgroundColor = '#007AFF'; // 出社っぽい青
+                        btn.innerHTML = '<i class="fas fa-building"></i> 出社チェックへ';
+                        btn.onclick = () => switchTab('g_work');
+                        shortcutArea.appendChild(btn);
+                    } else {
+                        // 在宅日
+                        const btnHome = document.createElement('button');
+                        btnHome.className = 'reset-button qr-button';
+                        btnHome.style.backgroundColor = '#34C759'; // 在宅っぽい緑
+                        btnHome.innerHTML = '<i class="fas fa-home"></i> 在宅チェックへ';
+                        btnHome.onclick = () => switchTab('g_home');
+                        shortcutArea.appendChild(btnHome);
+
+                        const btnNursery = document.createElement('button');
+                        btnNursery.className = 'reset-button qr-button';
+                        btnNursery.style.backgroundColor = '#AF52DE'; // 保育園っぽい紫
+                        btnNursery.innerHTML = '<i class="fas fa-child"></i> 保育園チェックへ';
+                        btnNursery.onclick = () => switchTab('g_nursery');
+                        shortcutArea.appendChild(btnNursery);
+                    }
+                    groupContainer.appendChild(shortcutArea);
+                }
 
                 // Add QR button for Nursery tab
                 if (currentGroup.id === 'g_nursery') {
