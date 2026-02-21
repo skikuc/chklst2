@@ -1696,7 +1696,8 @@
             // 日付変更時のリセット処理
             function checkDateReset() {
                 const now = new Date();
-                const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+                // Get local date string in YYYY-MM-DD format
+                const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
                 const lastClearDate = appData.appSettings.lastVisitDate;
 
                 if (lastClearDate !== today) {
