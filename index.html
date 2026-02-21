@@ -2471,10 +2471,12 @@
                         url = "https://www.perplexity.ai/search?q=" + encodeURIComponent(prompt) + "&copilot=1";
                         break;
                     case 'gemini':
-                        url = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
+                        // iOSショートカット「Gemini」を呼び出し、入力を渡す
+                        url = "shortcuts://run-shortcut?name=Gemini&input=text&text=" + encodeURIComponent(prompt);
                         break;
                     case 'claude':
-                        url = "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+                        // iOSショートカット「Claude」を呼び出し、入力を渡す
+                        url = "shortcuts://run-shortcut?name=Claude&input=text&text=" + encodeURIComponent(prompt);
                         break;
                     case 'chatgpt':
                         url = "https://chatgpt.com/?q=" + encodeURIComponent(prompt);
