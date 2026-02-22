@@ -1809,7 +1809,7 @@
                     let classNames = `tab ${group.id === activeGroupId ? 'active' : ''}`;
 
                     // Add 'red-tab' class based on conditions
-                    if (group.id === 'g_daily' || group.id === 'g_family' || group.id === 'g_nursery' || group.id === dynamicRedTabId) {
+                    if (group.id === 'g_daily' || group.id === 'g_family' || (group.id === 'g_nursery' && dynamicRedTabId === 'g_home') || group.id === dynamicRedTabId) {
                         classNames += ' red-tab';
                     }
 
