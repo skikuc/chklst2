@@ -1497,6 +1497,7 @@
                                     { id: "to5", title: "マイドール", icon: "🧸", isChecked: false, action: null },
                                     { id: "to6", title: "登園証をつける", icon: "📛", isChecked: false, action: null },
                                     { id: "to7", title: "靴下チェック", icon: "🧦", isChecked: false, action: null },
+                                    { id: "to_aircon", title: "エアコンを切る", icon: "❄️", isChecked: false, action: null },
                                     { id: "to_rain_umbrella", title: "雨：傘", icon: "☔", isChecked: false, action: null },
                                     { id: "to_rain_boots", title: "雨：ながぐつ", icon: "👢", isChecked: false, action: null },
                                     { id: "to8", title: "たまごボーロ", icon: "🍪", isChecked: false, action: null },
@@ -1908,6 +1909,13 @@
                 }
 
                 groupContainer.appendChild(sgList); // groupContainerの子要素として追加
+
+                // サブグループのチェックリスト項目数（categoryHeaderを除く）で降順にソート
+                currentGroup.subgroups.sort((a, b) => {
+                    const countA = a.items.filter(item => item.type !== "categoryHeader").length;
+                    const countB = b.items.filter(item => item.type !== "categoryHeader").length;
+                    return countB - countA;
+                });
 
                 currentGroup.subgroups.forEach((sg, index) => {
                     if (sg.hidden) return; // hiddenプロパティがあればスキップ
