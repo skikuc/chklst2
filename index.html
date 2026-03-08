@@ -1211,6 +1211,19 @@
                                 colorIndex: 4
                             },
                             {
+                                id: "sg_holiday_my_prep",
+                                title: "自分の準備",
+                                items: [
+                                    { id: "ho1", title: "着替え", icon: "👕", isChecked: false, action: null },
+                                    { id: "ho2", title: "Watch装着", icon: "⌚️", isChecked: false, action: null },
+                                    { id: "ho3", title: "鍵をつける", icon: "🔑", isChecked: false, action: null },
+                                    { id: "ho4", title: "カバン準備", icon: "🎒", isChecked: false, action: null },
+                                    { id: "ho5", title: "バッテリー", icon: "🔋", isChecked: false, action: null },
+                                    { id: "ho6", title: "ケーブル", icon: "🔌", isChecked: false, action: null }
+                                ],
+                                colorIndex: 0
+                            },
+                            {
                                 id: "sg_holiday_grooming",
                                 title: "身だしなみ",
                                 items: [
@@ -1222,8 +1235,107 @@
                                 colorIndex: 0
                             },
                             {
+                                id: "sg_holiday_outing_luggage",
+                                title: "おでかけ準備",
+                                items: [
+                                    { id: "ho15", title: "オムツ", icon: "🩷", isChecked: false, action: null },
+                                    { id: "ho16", title: "iPad", icon: "📱", isChecked: false, action: null },
+                                    { id: "ho17", title: "除菌シート", icon: "🧻", isChecked: false, action: null },
+                                    { id: "ho18", title: "リュック/ガラガラ", icon: "🎒", isChecked: false, action: null },
+                                    { id: "ho_bottle", title: "ステンレスボトル(飲み物)", icon: "🍼", isChecked: false, action: null },
+                                    { id: "ho19", title: "ティッシュ", icon: "🧻", isChecked: false, action: null },
+                                    { id: "ho20", title: "着替え", icon: "👕", isChecked: false, action: null },
+                                    { id: "ho21", title: "ハンカチ", icon: "🧼", isChecked: false, action: null }
+                                ],
+                                colorIndex: 1
+                            },
+                            {
+                                id: "sg_holiday_outing_prep2",
+                                title: "おでかけ準備２",
+                                items: [
+                                    { type: "categoryHeader", title: "📷 カメラ" },
+                                    { id: "ho_cam_eos", title: "EOS R8", icon: "📷", isChecked: false, action: null },
+                                    { id: "ho_cam_lens", title: "レンズ", icon: null, isChecked: false, action: null },
+                                    { id: "ho_cam_battery", title: "バッテリー", icon: "🔋", isChecked: false, action: null },
+                                    { id: "ho_cam_tripod", title: "三脚", icon: null, isChecked: false, action: null },
+                                    { id: "ho_cam_mobile_tripod", title: "携帯カメラ三脚", icon: null, isChecked: false, action: null },
+                                    { type: "categoryHeader", title: "🏕️ デイキャンプ" },
+                                    { id: "ho_dc_tent", title: "テント", icon: null, isChecked: false, action: null },
+                                    { id: "ho_dc_groundsheet", title: "グランドシート", icon: null, isChecked: false, action: null },
+                                    { id: "ho_dc_chair", title: "椅子", icon: null, isChecked: false, action: null },
+                                    { id: "ho_dc_table", title: "テーブル", icon: null, isChecked: false, action: null }
+                                ],
+                                colorIndex: 0 // Using colorIndex 0 for now, similar to '自分の準備'
+                            },
+                            {
+                                id: "sg_holiday_car_share",
+                                title: "カーシェア①準備",
+                                items: [
+                                    { id: "ho8", title: "カーシェア", icon: "🚗", isChecked: false, action: { label: "CS", type: "shortcut", val: "三井のカーシェアーズ" } },
+                                    { id: "ho9", title: "ジュニアシート", icon: "👶", isChecked: false, action: null },
+                                    { id: "ho10", title: "酔い止め", icon: "🤢", isChecked: false, action: null },
+                                    { id: "ho11", title: "ETCカード", icon: "🚗", isChecked: false, action: null },
+                                    { id: "ho12", title: "眼鏡/サングラス", icon: null, isChecked: false, action: null },
+                                    { id: "ho13", title: "ベビーカー", icon: "🛒", isChecked: false, action: null },
+                                    { id: "ho14", title: "ガム", icon: "🍬", isChecked: false, action: null }
+                                ],
+                                colorIndex: 3
+                            },
+                            {
+                                id: "sg_holiday_car_prep_vehicle",
+                                title: "カーシェア②シェア開始時",
+                                items: [
+                                    { id: "ho_car_prep_scratch", title: "車体のキズ・ヘコミ確認（スマホ撮影）", icon: "📸", isChecked: false, action: null },
+                                    { id: "ho_car_prep_fuel", title: "燃料・充電残量の確認", icon: "⛽", isChecked: false, action: null },
+                                    { id: "ho_car_prep_light", title: "ライトの設定（AUTO設定確認）", icon: "💡", isChecked: false, action: null },
+                                    { id: "ho_car_prep_parking", title: "パーキングブレーキ操作方法確認", icon: "🅿️", isChecked: false, action: null },
+                                    { id: "ho_car_prep_manual", title: "給油カード・マニュアルの場所確認", icon: "📂", isChecked: false, action: null }
+                                ],
+                                colorIndex: 3
+                            },
+                            {
+                                id: "sg_holiday_car_prep_safety",
+                                title: "カーシェア③出発時",
+                                items: [
+                                    { id: "ho_car_prep_etc", title: "ETCカード挿入・有効期限", icon: "💳", isChecked: false, action: null },
+                                    { id: "ho_car_prep_childlock", title: "チャイルドロック・ウィンドウロック", icon: "🔒", isChecked: false, action: null },
+                                    { id: "ho_car_prep_mirror", title: "ミラー調整（サイド・バック）", icon: "🪞", isChecked: false, action: null },
+                                    { id: "ho_car_prep_seat", title: "運転姿勢の調整（シート・ハンドル）", icon: "𒒺", isChecked: false, action: null },
+                                    { id: "ho_car_prep_navivol", title: "カーナビ音量設定", icon: "🔊", isChecked: false, action: null },
+                                    { id: "ho_car_prep_bluetooth", title: "Bluetooth接続", icon: "📶", isChecked: false, action: null },
+                                    { id: "ho_car_prep_destination", title: "目的地設定", icon: "📍", isChecked: false, action: null }
+                                ],
+                                colorIndex: 3
+                            },
+                            {
+                                id: "sg_holiday_car_return",
+                                title: "カーシェア④返却時",
+                                items: [
+                                    { id: "ho_car_return_mirror", title: "サイドミラーの収納", icon: "↩️", isChecked: false, action: null },
+                                    { id: "ho_car_return_bluetooth", title: "Bluetooth登録情報の削除", icon: "🗑️", isChecked: false, action: null },
+                                    { id: "ho_car_return_etc", title: "ETCカードの抜き忘れ確認", icon: "💳", isChecked: false, action: null },
+                                    { id: "ho_car_return_cleaning", title: "車内の清掃・ゴミの持ち帰り", icon: "🧹", isChecked: false, action: null },
+                                    { id: "ho_car_return_lost", title: "忘れ物（スマホ、財布、おもちゃ等）", icon: "👜", isChecked: false, action: null }
+                                ],
+                                colorIndex: 3
+                            },
+                            {
+                                id: "sg_holiday_housework_pm",
+                                title: "家事（午後）",
+                                items: [
+                                    { id: "ho_h8", title: "洗濯物の取り込み", icon: "🧺", isChecked: false, action: null },
+                                    { id: "ho_h9", title: "洗濯物畳み", icon: "👕", isChecked: false, action: null },
+                                    { id: "ho_h10", title: "パジャマ準備", icon: "🌙", isChecked: false, action: null },
+                                    { id: "ho_h11", title: "オムツ補充", icon: "🩷", isChecked: false, action: null },
+                                    { id: "ho_window_close", title: "窓閉め", icon: "🪟", isChecked: false, action: null },
+                                    { id: "ho_h12", title: "追い焚き", icon: "🔥", isChecked: false, action: null },
+                                    { id: "ho_wash_reserve", title: "風呂後に翌日の洗濯機予約", icon: null, isChecked: false, action: { label: "時間", type: "function", val: "calcHours" } }
+                                ],
+                                colorIndex: 1
+                            },
+                            {
                                 id: "sg_holiday_organize",
-                                title: "🧹 整理",
+                                title: "整理",
                                 items: [
                                     { id: "ho_org_clothes", title: "洋服の整理", icon: "👕", isChecked: false, action: null },
                                     { id: "ho_org_desk", title: "PCの机の上の整理", icon: "🖥️", isChecked: false, action: null },
@@ -1244,6 +1356,23 @@
                                 colorIndex: 4
                             },
                             {
+                                id: "sg_holiday_transport",
+                                title: "交通機関",
+                                items: [
+                                    { id: "ho22", title: "バス", icon: "🚌", isChecked: false, action: { label: "", type: "mixed", val: [{ type: "url", label: "SP", val: "https://heiwakotsu.com/timefare_baytown/19time_baytown.pdf" }, { type: "url", label: "マリン", val: "https://heiwakotsu.com/timefare_baytown/baytown00_3.pdf" }] } },
+                                    { id: "ho23", title: "電車：海浜幕張駅", icon: "🚃", isChecked: false, action: { label: "時刻表", type: "url", val: "https://transit.yahoo.co.jp/timetable/22226/950" } }
+                                ],
+                                colorIndex: 2
+                            },
+                            {
+                                id: "sg_holiday_meals",
+                                title: "食事",
+                                items: [
+                                    { id: "ho_okano", title: "cafe okano", icon: "☕️", isChecked: false, action: { label: "X", type: "url", val: "https://x.com/cafeokano?s=21&t=EjJBVaQXUmSoBZe-IjkvnA" } }
+                                ],
+                                colorIndex: 4
+                            },
+                            {
                                 id: "sg_holiday_ai_outing",
                                 title: "✨ AIおでかけ計画",
                                 items: [
@@ -1260,135 +1389,6 @@
                                 ],
                                 hidden: true,
                                 colorIndex: 3
-                            },
-                            {
-                                id: "sg_holiday_my_prep",
-                                title: "自分の準備",
-                                items: [
-                                    { id: "ho1", title: "着替え", icon: "👕", isChecked: false, action: null },
-                                    { id: "ho2", title: "Watch装着", icon: "⌚️", isChecked: false, action: null },
-                                    { id: "ho3", title: "鍵をつける", icon: "🔑", isChecked: false, action: null },
-                                    { id: "ho4", title: "カバン準備", icon: "🎒", isChecked: false, action: null },
-                                    { id: "ho5", title: "バッテリー", icon: "🔋", isChecked: false, action: null },
-                                    { id: "ho6", title: "ケーブル", icon: "🔌", isChecked: false, action: null }
-                                ],
-                                colorIndex: 0
-                            },
-                            {
-                                id: "sg_holiday_car_share",
-                                title: "カーシェア",
-                                items: [
-                                    { id: "ho8", title: "カーシェア", icon: "🚗", isChecked: false, action: { label: "CS", type: "shortcut", val: "三井のカーシェアーズ" } },
-                                    { id: "ho9", title: "ジュニアシート", icon: "👶", isChecked: false, action: null },
-                                    { id: "ho10", title: "酔い止め", icon: "🤢", isChecked: false, action: null },
-                                    { id: "ho11", title: "ETCカード", icon: "🚗", isChecked: false, action: null },
-                                    { id: "ho12", title: "眼鏡/サングラス", icon: null, isChecked: false, action: null },
-                                    { id: "ho13", title: "ベビーカー", icon: "🛒", isChecked: false, action: null },
-                                    { id: "ho14", title: "ガム", icon: "🍬", isChecked: false, action: null }
-                                ],
-                                colorIndex: 3
-                            },
-                            {
-                                id: "sg_holiday_outing_luggage",
-                                title: "おでかけ荷物",
-                                items: [
-                                    { id: "ho15", title: "オムツ", icon: "🩷", isChecked: false, action: null },
-                                    { id: "ho16", title: "iPad", icon: "📱", isChecked: false, action: null },
-                                    { id: "ho17", title: "除菌シート", icon: "🧻", isChecked: false, action: null },
-                                    { id: "ho18", title: "リュック/ガラガラ", icon: "🎒", isChecked: false, action: null },
-                                    { id: "ho_bottle", title: "ステンレスボトル(飲み物)", icon: "🍼", isChecked: false, action: null },
-                                    { id: "ho19", title: "ティッシュ", icon: "🧻", isChecked: false, action: null },
-                                    { id: "ho20", title: "着替え", icon: "👕", isChecked: false, action: null },
-                                    { id: "ho21", title: "ハンカチ", icon: "🧼", isChecked: false, action: null }
-                                ],
-                                colorIndex: 1
-                            },
-                            {
-                                id: "sg_holiday_outing_prep2",
-                                title: "お出かけ準備２",
-                                items: [
-                                    { type: "categoryHeader", title: "📷 カメラ" },
-                                    { id: "ho_cam_eos", title: "EOS R8", icon: "📷", isChecked: false, action: null },
-                                    { id: "ho_cam_lens", title: "レンズ", icon: null, isChecked: false, action: null },
-                                    { id: "ho_cam_battery", title: "バッテリー", icon: "🔋", isChecked: false, action: null },
-                                    { id: "ho_cam_tripod", title: "三脚", icon: null, isChecked: false, action: null },
-                                    { id: "ho_cam_mobile_tripod", title: "携帯カメラ三脚", icon: null, isChecked: false, action: null },
-                                    { type: "categoryHeader", title: "🏕️ デイキャンプ" },
-                                    { id: "ho_dc_tent", title: "テント", icon: null, isChecked: false, action: null },
-                                    { id: "ho_dc_groundsheet", title: "グランドシート", icon: null, isChecked: false, action: null },
-                                    { id: "ho_dc_chair", title: "椅子", icon: null, isChecked: false, action: null },
-                                    { id: "ho_dc_table", title: "テーブル", icon: null, isChecked: false, action: null }
-                                ],
-                                colorIndex: 0 // Using colorIndex 0 for now, similar to '自分の準備'
-                            },
-                            {
-                                id: "sg_holiday_car_prep_safety",
-                                title: "🚗 カーシェア：安全・運転環境の確認",
-                                items: [
-                                    { id: "ho_car_prep_etc", title: "ETCカード挿入・有効期限", icon: "💳", isChecked: false, action: null },
-                                    { id: "ho_car_prep_childlock", title: "チャイルドロック・ウィンドウロック", icon: "🔒", isChecked: false, action: null },
-                                    { id: "ho_car_prep_mirror", title: "ミラー調整（サイド・バック）", icon: "🪞", isChecked: false, action: null },
-                                    { id: "ho_car_prep_seat", title: "運転姿勢の調整（シート・ハンドル）", icon: "𒒺", isChecked: false, action: null },
-                                    { id: "ho_car_prep_navivol", title: "カーナビ音量設定", icon: "🔊", isChecked: false, action: null },
-                                    { id: "ho_car_prep_bluetooth", title: "Bluetooth接続", icon: "📶", isChecked: false, action: null },
-                                    { id: "ho_car_prep_destination", title: "目的地設定", icon: "📍", isChecked: false, action: null }
-                                ],
-                                colorIndex: 3
-                            },
-                            {
-                                id: "sg_holiday_car_prep_vehicle",
-                                title: "🚗 カーシェア：車両・備品の確認",
-                                items: [
-                                    { id: "ho_car_prep_scratch", title: "車体のキズ・ヘコミ確認（スマホ撮影）", icon: "📸", isChecked: false, action: null },
-                                    { id: "ho_car_prep_fuel", title: "燃料・充電残量の確認", icon: "⛽", isChecked: false, action: null },
-                                    { id: "ho_car_prep_light", title: "ライトの設定（AUTO設定確認）", icon: "💡", isChecked: false, action: null },
-                                    { id: "ho_car_prep_parking", title: "パーキングブレーキ操作方法確認", icon: "🅿️", isChecked: false, action: null },
-                                    { id: "ho_car_prep_manual", title: "給油カード・マニュアルの場所確認", icon: "📂", isChecked: false, action: null }
-                                ],
-                                colorIndex: 3
-                            },
-                            {
-                                id: "sg_holiday_car_return",
-                                title: "🚗 カーシェア：返却時：忘れ物・データ消去",
-                                items: [
-                                    { id: "ho_car_return_mirror", title: "サイドミラーの収納", icon: "↩️", isChecked: false, action: null },
-                                    { id: "ho_car_return_bluetooth", title: "Bluetooth登録情報の削除", icon: "🗑️", isChecked: false, action: null },
-                                    { id: "ho_car_return_etc", title: "ETCカードの抜き忘れ確認", icon: "💳", isChecked: false, action: null },
-                                    { id: "ho_car_return_cleaning", title: "車内の清掃・ゴミの持ち帰り", icon: "🧹", isChecked: false, action: null },
-                                    { id: "ho_car_return_lost", title: "忘れ物（スマホ、財布、おもちゃ等）", icon: "👜", isChecked: false, action: null }
-                                ],
-                                colorIndex: 3
-                            },
-                            {
-                                id: "sg_holiday_transport",
-                                title: "交通機関",
-                                items: [
-                                    { id: "ho22", title: "バス", icon: "🚌", isChecked: false, action: { label: "", type: "mixed", val: [{ type: "url", label: "SP", val: "https://heiwakotsu.com/timefare_baytown/19time_baytown.pdf" }, { type: "url", label: "マリン", val: "https://heiwakotsu.com/timefare_baytown/baytown00_3.pdf" }] } },
-                                    { id: "ho23", title: "電車：海浜幕張駅", icon: "🚃", isChecked: false, action: { label: "時刻表", type: "url", val: "https://transit.yahoo.co.jp/timetable/22226/950" } }
-                                ],
-                                colorIndex: 2
-                            },
-                            {
-                                id: "sg_holiday_meals",
-                                title: "🍽️ 食事",
-                                items: [
-                                    { id: "ho_okano", title: "cafe okano", icon: "☕️", isChecked: false, action: { label: "X", type: "url", val: "https://x.com/cafeokano?s=21&t=EjJBVaQXUmSoBZe-IjkvnA" } }
-                                ],
-                                colorIndex: 4
-                            },
-                            {
-                                id: "sg_holiday_housework_pm",
-                                title: "家事(午後)",
-                                items: [
-                                    { id: "ho_h8", title: "洗濯物の取り込み", icon: "🧺", isChecked: false, action: null },
-                                    { id: "ho_h9", title: "洗濯物畳み", icon: "👕", isChecked: false, action: null },
-                                    { id: "ho_h10", title: "パジャマ準備", icon: "🌙", isChecked: false, action: null },
-                                    { id: "ho_h11", title: "オムツ補充", icon: "🩷", isChecked: false, action: null },
-                                    { id: "ho_window_close", title: "窓閉め", icon: "🪟", isChecked: false, action: null },
-                                    { id: "ho_h12", title: "追い焚き", icon: "🔥", isChecked: false, action: null },
-                                    { id: "ho_wash_reserve", title: "風呂後に翌日の洗濯機予約", icon: null, isChecked: false, action: { label: "時間", type: "function", val: "calcHours" } }
-                                ],
-                                colorIndex: 1
                             }
                         ]
                     },
@@ -1910,12 +1910,7 @@
 
                 groupContainer.appendChild(sgList); // groupContainerの子要素として追加
 
-                // サブグループのチェックリスト項目数（categoryHeaderを除く）で降順にソート
-                currentGroup.subgroups.sort((a, b) => {
-                    const countA = a.items.filter(item => item.type !== "categoryHeader").length;
-                    const countB = b.items.filter(item => item.type !== "categoryHeader").length;
-                    return countB - countA;
-                });
+                // (以前は項目数による降順ソートをしていましたが、指定順序を優先するため削除しました)
 
                 currentGroup.subgroups.forEach((sg, index) => {
                     if (sg.hidden) return; // hiddenプロパティがあればスキップ
