@@ -1750,7 +1750,7 @@
                 const isWeekend = (dayIdx === 0 || dayIdx === 6);
                 if (appData.appSettings.companyDays.includes(dayIdx)) {
                     companyBadge.style.display = 'flex'; // Explicitly set display to flex
-                    companyBadge.innerHTML = `<img src="${companyLogoPath}" alt="BN Logo">出社日`;
+                    companyBadge.innerHTML = `出社日`;
                 } else if (!isWeekend) {
                     companyBadge.style.display = 'flex'; // Or 'block', 'flex' is fine
                     companyBadge.innerHTML = '在宅日';
